@@ -1,0 +1,59 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "_artifactsLocation": {
+            "value": "${artifactsLocationBase}/${project.artifactId}/${git.tag}/src/main/"
+        },
+        "identity": {
+            "value": {
+                "type": "userAssigned",
+                "userAssignedIdentities": {
+                    "${identityId}": {}
+                }
+            }
+        },
+        "createCluster": {
+            "value": "${createCluster}"
+        },
+        "clusterName": {
+            "value": "${clusterName}"
+        }, 
+        "clusterRGName": {
+            "value": "${clusterRGName}"
+        },
+        "projMgrUsername": {
+            "value": "${projMgrUsername}"
+        },
+        "projMgrPassword": {
+            "value": "${projMgrPassword}"
+        },
+        "aadClientId": {
+            "value": "${aadClientId}"
+        },
+        "aadClientSecret": {
+            "value": "${aadClientSecret}"
+        },
+        "aadObjectId": {
+            "value": "${aadObjectId}"
+        },
+        "rpObjectId": {
+            "value": "${rpObjectId}"
+        },
+        "uploadAppPackage": {
+            "value": "${uploadAppPackage}"
+        },
+        "contextRoot": {
+            "value": "${contextRoot}"
+        },
+        "useOpenLibertyImage": {
+            "value": "${useOpenLibertyImage}"
+        },
+        "useJava8": {
+            "value": "${useJava8}"
+        },
+        "appReplicas": {
+            "value": "${appReplicas}"
+        }
+    }
+}

@@ -1,0 +1,7 @@
+test-files
+target
+.project
+.settings
+*.versionsBackup
+.classpath
+.DS_Store
