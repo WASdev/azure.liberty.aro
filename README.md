@@ -33,7 +33,7 @@
       mvn -Dgit.repo=<repo_user> -Dgit.tag=<repo_tag> -DidentityId=<user-assigned-managed-identity-id> -DcreateCluster=false -DclusterName=<cluste-name> -DclusterRGName=<cluster-resource-group-name> -DprojMgrUsername=<project-mgr-username> -DprojMgrPassword=<project-mgr-username> -DuploadAppPackage=<true|false> -DuseOpenLibertyImage=<true|false> -DuseJava8=<true|false> -DcontextRoot=<context-root>  -DappReplicas=<app-replicas> -Dtest.args="-Test All" -Ptemplate-validation-tests clean install
       ```
 
-1. Change to `./target/arm` directory
+1. Change to `./target/cli` directory
 1. Using `deploy.azcli` to deploy
 
    ```bash
