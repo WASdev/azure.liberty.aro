@@ -66,12 +66,15 @@
                         "elements": [
                             {
                                 "name": "pullSecret",
-                                "type": "Microsoft.Common.TextBox",
-                                "label": "Pull secret",
+                                "type": "Microsoft.Common.PasswordBox",
+                                "label": {
+                                    "password": "Pull secret",
+                                    "confirmPassword": "Confirm secret"
+                                },
                                 "toolTip": "The pull secret text that you obtained from the Red Hat OpenShift Cluster Manager website.<br><br>Follow steps below to get the pull secret:<li><a href='https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#get-a-red-hat-pull-secret-optional' target='_blank'>Get a Red Hat pull secret</a>.</li>",
                                 "constraints": {
                                     "required": true,
-                                    "regex": "^.+$",
+                                    "regex": "^.{8,}$",
                                     "validationMessage": "A valid pull secret is required."
                                 }
                             },
@@ -156,7 +159,7 @@
                                 "type": "Microsoft.Common.TextBox",
                                 "label": "Project manager",
                                 "defaultValue": "manager",
-                                "toolTip": "Use only allowed characters.",
+                                "toolTip": "Project manager has rights to view and modify any resource in the project except for quota. Only letters and numbers are allowed.",
                                 "constraints": {
                                     "required": true,
                                     "regex": "^[a-z0-9A-Z]{1,30}$",
@@ -195,7 +198,7 @@
                         "type": "Microsoft.Common.OptionsGroup",
                         "label": "Deploy your application package?",
                         "defaultValue": "Yes",
-                        "toolTip": "Select 'Yes' to deploy your application, or select 'No' to deploy a default 'hello world' open liberty application.",
+                        "toolTip": "Select 'Yes' to deploy your application, or select 'No' to deploy a default 'Hello world' Open Liberty/WebSphere Liberty application.",
                         "constraints": {
                             "allowedValues": [
                                 {

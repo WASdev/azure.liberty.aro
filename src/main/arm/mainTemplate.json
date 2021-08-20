@@ -63,7 +63,7 @@
             }
         },
         "pullSecret": {
-            "type": "string",
+            "type": "securestring",
             "defaultValue": "",
             "metadata": {
                 "description": "Pull secret from cloud.redhat.com. The json should be input as a string"
