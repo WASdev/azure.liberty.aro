@@ -1,0 +1,247 @@
+#!/bin/bash
+
+#      Copyright (c) Microsoft Corporation.
+# 
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+# 
+#           http://www.apache.org/licenses/LICENSE-2.0
+# 
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+set -euo pipefail
+IFS=$'\n\t'
+
+# -e: immediately exit if any command has a non-zero exit status
+# -o: prevents errors in a pipeline from being masked
+# IFS new value is less likely to cause confusing bugs when looping arrays or arguments (e.g. $@)
+
+usage() { echo "Usage: $0 -n <deploymentName> -f <appPackage> -p <pullSecretFile> -i <subscriptionId> -g <resourceGroupName> -l <resourceGroupLocation>" 1>&2; exit 1; }
+
+declare deploymentName=""
+declare appPackage=""
+declare pullSecretFile=""
+declare subscriptionId=""
+declare resourceGroupName=""
+declare resourceGroupLocation=""
+
+# Initialize parameters specified from command line
+while getopts ":n:f:p:i:g:l:" arg; do
+	case "${arg}" in
+		n)
+			deploymentName=${OPTARG}
+			;;
+		f)
+			appPackage=${OPTARG}
+			;;
+		p)
+			pullSecretFile=${OPTARG}
+			;;
+		i)
+			subscriptionId=${OPTARG}
+			;;
+		g)
+			resourceGroupName=${OPTARG}
+			;;
+		l)
+			resourceGroupLocation=${OPTARG}
+			;;
+		esac
+done
+shift $((OPTIND-1))
+
+# Prompt for parameters is some required parameters are missing
+if [[ -z "$deploymentName" ]]; then
+	echo "Enter a name for this deployment:"
+	read deploymentName
+fi
+
+if [[ ! -f "$appPackage" ]]; then
+	echo "The application package (.war) file is necessary to deploy."
+	echo "Enter the path of application package file:"
+	read appPackage
+	[[ -f "$appPackage" ]]
+fi
+
+if [[ -z "$subscriptionId" ]]; then
+	echo "Your subscription ID can be looked up with the CLI using: az account show --out json "
+	echo "Enter your subscription ID:"
+	read subscriptionId
+	[[ "${subscriptionId:?}" ]]
+fi
+
+if [[ -z "$resourceGroupName" ]]; then
+	echo "This script will look for an existing resource group, otherwise a new one will be created "
+	echo "You can create new resource groups with the CLI using: az group create "
+	echo "Enter a resource group name"
+	read resourceGroupName
+	[[ "${resourceGroupName:?}" ]]
+fi
+
+if [[ -z "$resourceGroupLocation" ]]; then
+	echo "If creating a *new* resource group, you need to set a location "
+	echo "You can lookup locations with the CLI using: az account list-locations "
+	
+	echo "Enter resource group location:"
+	read resourceGroupLocation
+fi
+
+if [ -z "$deploymentName" ] || [ ! -f "$appPackage" ] || [ -z "$subscriptionId" ] || [ -z "$resourceGroupName" ]; then
+	echo "Either one of deploymentName, appPackage, subscriptionId and resourceGroupName is empty"
+	usage
+fi
+
+# templateFile Path - template file to be used
+templateFilePath="../arm/mainTemplate.json"
+
+if [ ! -f "$templateFilePath" ]; then
+	echo "$templateFilePath not found"
+	exit 1
+fi
+
+# parameter file path
+parametersFilePath="../arm/parameters.json"
+
+if [ ! -f "$parametersFilePath" ]; then
+	echo "$parametersFilePath not found"
+	exit 1
+fi
+
+# login to azure using your credentials
+az account show 1> /dev/null
+
+if [ $? != 0 ]; then
+	az login
+fi
+
+# set the default subscription id
+az account set --subscription $subscriptionId
+
+set +e
+
+# Check for existing RG
+az group show --name $resourceGroupName 1> /dev/null
+
+if [ $? != 0 ]; then
+	echo "Resource group with name" $resourceGroupName "could not be found. Creating new resource group.."
+	set -e
+	(
+		set -x
+		az group create --name $resourceGroupName --location $resourceGroupLocation 1> /dev/null
+	)
+	else
+	echo "Using existing resource group..."
+fi
+resourceGroupLocation=$( az group show --name $resourceGroupName | jq -r '.location' )
+
+# Create storage account and upload appliation package file to storage account
+# Create storage account if not existing
+storageAccountName="${subscriptionId//-/}"
+storageAccountName="${storageAccountName:0:19}"
+storageAccountName="stage$storageAccountName"
+storageAccountRGName="$storageAccountName-rg"
+
+set +e
+
+# Check for existing RG
+az group show --name $storageAccountRGName 1> /dev/null
+
+if [ $? != 0 ]; then
+	echo "Resource group with name" $storageAccountRGName "could not be found. Creating new resource group.."
+	set -e
+	(
+		set -x
+		az group create --name $storageAccountRGName --location $resourceGroupLocation 1> /dev/null
+	)
+	else
+	echo "Using existing resource group..."
+fi
+storageAccountRGLocation=$( az group show --name $storageAccountRGName | jq -r '.location' )
+
+if [[ -z $( az storage account list -o json | jq -r --arg accountName "$storageAccountName" '.[].name | select(. == $accountName)' ) ]]; then
+	echo "Storage account with name" $storageAccountName "could not be found. Creating new storage account..."
+	set -e
+	(
+		set -x
+		az storage account create -l "$storageAccountRGLocation" --sku "Standard_LRS" -g "$storageAccountRGName" -n "$storageAccountName" >/dev/null 2>&1
+	)
+	else
+	echo "Using existing storage account..."
+fi
+
+# Create storage container if not existing
+storageContainerName=${storageAccountName}"-container"
+storageContainerName=$( echo "$storageContainerName" | awk '{print tolower($0)}')
+storageAccountKey=$( az storage account keys list -g "$storageAccountRGName" -n "$storageAccountName" -o json | jq -r '.[0].value' )
+if [[ $( az storage container exists --name "$storageContainerName" --account-name "$storageAccountName" --account-key "$storageAccountKey" -o json | jq '.exists') = false ]]; then
+	echo "Storage container with name" $storageContainerName "could not be found. Creating new storage container..."
+	set -e
+	(
+		set -x
+		az storage container create -n "$storageContainerName" --account-name "$storageAccountName" --account-key "$storageAccountKey" >/dev/null 2>&1
+	)
+	else
+	echo "Using existing storage container..."
+fi
+
+# Upload application package to storage container
+fileName=$(basename "$appPackage")
+if [[ $( az storage blob exists -n "$fileName" -c "$storageContainerName" --account-name "$storageAccountName" --account-key "$storageAccountKey" -o json | jq '.exists') = false ]]; then
+	echo "Storage blob with name" $fileName "could not be found. Creating new storage blob..."
+	set -e
+	(
+		set -x
+		az storage blob upload -f "$appPackage" -c $storageContainerName -n "$fileName" --account-name "$storageAccountName" --account-key "$storageAccountKey"
+	)
+	else
+	echo "Using existing storage blob..."
+fi
+
+set +u
+
+# Get a 4-hour SAS Token for the artifacts container. Fall back to OSX date syntax if Linux syntax fails.
+plusFourHoursUtc=$(date -u -v+4H +%Y-%m-%dT%H:%MZ 2>/dev/null)  || plusFourHoursUtc=$(date -u --date "$dte 4 hour" +%Y-%m-%dT%H:%MZ)
+
+# Generate SAS token
+sasToken=$( az storage container generate-sas -n "$storageContainerName" --permissions r --expiry "$plusFourHoursUtc" --account-name "$storageAccountName" --account-key "$storageAccountKey" -o json | sed 's/"//g')
+blobEndpoint=$( az storage account show -n "$storageAccountName" -g "$storageAccountRGName" -o json | jq -r '.primaryEndpoints.blob' )
+appPackageUrl=$blobEndpoint$storageContainerName/"$fileName"?$sasToken
+
+# Read pull secret
+if [ -f "$pullSecretFile" ]; then
+	pullSecret=$( cat "$pullSecretFile" | jq -c '.' )
+else
+	pullSecret="{}"
+fi
+
+# parameters JSON
+parametersJson=$( cat $parametersFilePath | jq '.parameters' )
+createCluster=$( echo $parametersJson | jq '.createCluster.value' | sed 's/"//g' )
+parametersJson=$( echo $parametersJson | jq --argjson createCluster "$createCluster" '.createCluster.value = $createCluster' )
+uploadAppPackage=$( echo $parametersJson | jq '.uploadAppPackage.value' | sed 's/"//g' )
+parametersJson=$( echo $parametersJson | jq --argjson appPackage "$uploadAppPackage" '.uploadAppPackage.value = $appPackage' )
+useOpenLibertyImage=$( echo $parametersJson | jq '.useOpenLibertyImage.value' | sed 's/"//g' )
+parametersJson=$( echo $parametersJson | jq --argjson openliberty "$useOpenLibertyImage" '.useOpenLibertyImage.value = $openliberty' )
+useJava8=$( echo $parametersJson | jq '.useJava8.value' | sed 's/"//g' )
+parametersJson=$( echo $parametersJson | jq --argjson java8 "$useJava8" '.useJava8.value = $java8' )
+appReplicas=$( echo $parametersJson | jq '.appReplicas.value' | sed 's/"//g' )
+parametersJson=$( echo $parametersJson | jq --argjson replicas "$appReplicas" '.appReplicas.value = $replicas' )
+parametersJson=$( echo "$parametersJson" | jq --arg uri "$appPackageUrl" '{"appPackageUrl": {"value":$uri}} + .' )
+parametersJson=$( echo "$parametersJson" | jq --arg pullSecret "$pullSecret" '{"pullSecret": {"value":$pullSecret}} + .' )
+parametersJson=$( echo "$parametersJson" | jq -c '.' )
+
+# Start deployment
+echo "Starting deployment..."
+(
+	az deployment group create --name "$deploymentName" --resource-group "$resourceGroupName" \
+		--template-file "$templateFilePath" --parameters "$parametersJson"
+)
+
+if [[ $? -eq 0 ]]; then
+	echo "Template has been successfully deployed"
+fi

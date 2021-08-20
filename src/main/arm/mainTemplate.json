@@ -1,0 +1,409 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "_artifactsLocation": {
+            "type": "string",
+            "defaultValue": "[deployment().properties.templateLink.uri]",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
+            }
+        },
+        "_artifactsLocationSasToken": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "identity": {
+            "type": "object",
+            "metadata": {
+                "description": "User assigned managed identity granted with contributor role of the same subscription"
+            }
+        },
+        "createCluster": {
+            "defaultValue": true,
+            "type": "bool",
+            "metadata": {
+                "description": "Flag indicating whether to create a new cluster or not"
+            }
+        },
+        "clusterName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name for the existing cluster"
+            }
+        },
+        "clusterRGName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name for the resource group of the existing cluster"
+            }
+        },
+        "projMgrUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Username for cluster admin."
+            }
+        },
+        "projMgrPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for cluster admin."
+            }
+        },
+        "pullSecret": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Pull secret from cloud.redhat.com. The json should be input as a string"
+            }
+        },
+        "aadClientId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The Application ID of an Azure Active Directory client application"
+            }
+        },
+        "aadClientSecret": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The secret of an Azure Active Directory client application"
+            }
+        },
+        "aadObjectId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The Object ID of an Azure Active Directory client application"
+            }
+        },
+        "rpObjectId": {
+            "type": "String",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The ObjectID of the Resource Provider Service Principal"
+            }
+        },
+        "masterVmSize": {
+            "type": "string",
+            "defaultValue": "Standard_D8s_v3",
+            "metadata": {
+                "description": "Master Node VM Type"
+            }
+        },
+        "workerVmSize": {
+            "type": "string",
+            "defaultValue": "Standard_D4s_v3",
+            "metadata": {
+                "description": "Worker Node VM Type"
+            }
+        },
+        "uploadAppPackage": {
+            "defaultValue": false,
+            "type": "bool",
+            "metadata": {
+                "description": "Flag indicating whether to deploy a user uploaded application or a default 'Hello world' application"
+            }
+        },
+        "appPackageUrl": {
+            "defaultValue": "",
+            "type": "string",
+            "metadata": {
+                "description": "The url to download user uploaded application package"
+            }
+        },
+        "contextRoot": {
+            "defaultValue": "/",
+            "type": "string",
+            "metadata": {
+                "description": "The context root of the application"
+            }
+        },
+        "useOpenLibertyImage": {
+            "defaultValue": true,
+            "type": "bool",
+            "metadata": {
+                "description": "Flag indicating whether to use Open Liberty or WebSphere Liberty as application base image"
+            }
+        },
+         "useJava8": {
+            "defaultValue": true,
+            "type": "bool",
+            "metadata": {
+                "description": "Flag indicating whether to use Java 8 as Java runtime of the application"
+            }
+        },
+        "appReplicas": {
+            "type": "int",
+            "defaultValue": 2,
+            "metadata": {
+                "description": "The number of application replicas to deploy"
+            }
+        },
+        "guidValue": {
+            "defaultValue": "[newGuid()]",
+            "type": "string"
+        }
+    },
+    "variables": {
+        "const_appImage": "[concat(variables('const_appImageName'), ':', variables('const_appImageTag'))]",
+        "const_appImageName": "[concat('image', variables('const_suffix'))]",
+        "const_appImageTag": "1.0.0",
+        "const_appName": "[concat('app', variables('const_suffix'))]",
+        "const_appPackageUrl": "[if(parameters('uploadAppPackage'), parameters('appPackageUrl'), 'N/A')]",
+        "const_appProjName": "[concat('project', variables('const_suffix'))]",
+        "const_arguments1": "[concat(variables('const_clusterRGName'), ' ', variables('name_clusterName'), ' ', parameters('projMgrUsername'), ' ', parameters('projMgrPassword'), ' ', variables('const_scriptLocation'), ' ', parameters('uploadAppPackage'), ' ', variables('const_appPackageUrl'))]",
+        "const_arguments2": "[concat(' ', parameters('contextRoot'), ' ', parameters('useOpenLibertyImage'), ' ', parameters('useJava8'), ' ', variables('const_appName'), ' ', variables('const_appProjName'), ' ', variables('const_appImage'), ' ', parameters('appReplicas'))]",
+        "const_clusterDomainName": "[concat('domain', variables('const_suffix'))]",
+        "const_clusterRGName": "[if(parameters('createCluster'), resourceGroup().name, parameters('clusterRGName'))]",
+        "const_contribRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "const_scriptLocation": "[uri(parameters('_artifactsLocation'), 'scripts/')]",
+        "const_suffix": "[take(replace(parameters('guidValue'), '-', ''), 6)]",
+        "name_clusterName": "[if(parameters('createCluster'), concat('cluster', variables('const_suffix')), parameters('clusterName'))]",
+        "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
+        "name_deploymentScriptName": "[concat('script', variables('const_suffix'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "${azure.apiVersion}",
+            "name": "${customer.usage.attribution.id}",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "${azure.apiVersion}",
+            "name": "${aro.start}",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                    ]
+                }
+            }
+        },
+        {
+           "condition": "[parameters('createCluster')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "${azure.apiVersion}",
+            "name": "[variables('name_clusterVNetName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.100.0.0/15"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "master",
+                        "properties": {
+                            "addressPrefix": "10.100.76.0/24",
+                            "serviceEndpoints": [
+                                {
+                                    "service": "Microsoft.ContainerRegistry"
+                                }
+                            ],
+                            "privateLinkServiceNetworkPolicies": "Disabled"
+                        }
+                    },
+                    {
+                        "name": "worker",
+                        "properties": {
+                            "addressPrefix": "10.100.70.0/23",
+                            "serviceEndpoints": [
+                                {
+                                    "service": "Microsoft.ContainerRegistry"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "condition": "[parameters('createCluster')]",
+            "type": "Microsoft.Network/virtualNetworks/providers/roleAssignments",
+            "apiVersion": "${azure.apiVersion.vNetRoleAssignment}",
+            "name": "[concat(variables('name_clusterVNetName'), '/Microsoft.Authorization/', guid(resourceGroup().id, deployment().name, 'aadObjectId', parameters('aadObjectId')))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('name_clusterVNetName'))]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[variables('const_contribRole')]",
+                "principalId": "[parameters('aadObjectId')]"
+            }
+        },
+        {
+            "condition": "[parameters('createCluster')]",
+            "type": "Microsoft.Network/virtualNetworks/providers/roleAssignments",
+            "apiVersion": "${azure.apiVersion.vNetRoleAssignment}",
+            "name": "[concat(variables('name_clusterVNetName'), '/Microsoft.Authorization/', guid(resourceGroup().id, deployment().name, 'rpObjectId', parameters('rpObjectId')))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('name_clusterVNetName'))]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[variables('const_contribRole')]",
+                "principalId": "[parameters('rpObjectId')]"
+            }
+        },
+        {
+            "condition": "[parameters('createCluster')]",
+            "type": "Microsoft.RedHatOpenShift/OpenShiftClusters",
+            "apiVersion": "${azure.apiVersion.aroCluster}",
+            "name": "[variables('name_clusterName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('name_clusterVNetName'))]"
+            ],
+            "properties": {
+                "clusterProfile": {
+                    "domain": "[variables('const_clusterDomainName')]",
+                    "resourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', concat('MC_', resourceGroup().name, '_', variables('name_clusterName'), '_', parameters('location')))]",
+                    "pullSecret": "[parameters('pullSecret')]"
+                },
+                "networkProfile": {
+                    "podCidr": "10.128.0.0/14",
+                    "serviceCidr": "172.30.0.0/16"
+                },
+                "servicePrincipalProfile": {
+                    "clientId": "[parameters('aadClientId')]",
+                    "clientSecret": "[parameters('aadClientSecret')]"
+                },
+                "masterProfile": {
+                    "vmSize": "[parameters('masterVmSize')]",
+                    "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('name_clusterVNetName'), 'master')]"
+                },
+                "workerProfiles": [
+                    {
+                        "name": "worker",
+                        "vmSize": "[parameters('workerVmSize')]",
+                        "diskSizeGB": 128,
+                        "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('name_clusterVNetName'), 'worker')]",
+                        "count": 3
+                    }
+                ],
+                "apiserverProfile": {
+                    "visibility": "Public"
+                },
+                "ingressProfiles": [
+                    {
+                        "name": "default",
+                        "visibility": "Public"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "${azure.apiVersion.deploymentScript}",
+            "name": "[variables('name_deploymentScriptName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.RedHatOpenShift/OpenShiftClusters', variables('name_clusterName'))]"
+            ],
+            "kind": "AzureCLI",
+            "identity": "[parameters('identity')]",
+            "properties": {
+                "AzCliVersion": "2.15.0",
+                "arguments": "[concat(variables('const_arguments1'), variables('const_arguments2'))]",
+                "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('install.sh', parameters('_artifactsLocationSasToken')))]",
+                "supportingScriptUris":[
+                    "[uri(variables('const_scriptLocation'), concat('open-liberty-operator-subscription.yaml', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(variables('const_scriptLocation'), concat('htpasswd-cr.yaml', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(variables('const_scriptLocation'), concat('server.xml.template', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(variables('const_scriptLocation'), concat('Dockerfile.template', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(variables('const_scriptLocation'), concat('Dockerfile-wlp.template', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(variables('const_scriptLocation'), concat('open-liberty-application.yaml.template', parameters('_artifactsLocationSasToken')))]"
+                ],
+                "cleanupPreference": "OnSuccess",
+                "retentionInterval": "P1D"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "${azure.apiVersion}",
+            "name": "${aro.end}",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deploymentScripts', variables('name_deploymentScriptName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "clusterName": {
+            "value": "[variables('name_clusterName')]",
+            "type": "string"
+        },
+        "clusterRGName": {
+            "value": "[variables('const_clusterRGName')]",
+            "type": "string"
+        },
+        "clusterConsoleUrl": {
+            "value": "[reference(variables('name_deploymentScriptName')).outputs.consoleUrl]",
+            "type": "string"
+        },
+        "appName": {
+            "value": "[variables('const_appName')]",
+            "type": "string"
+        },
+        "appProjName": {
+            "value": "[variables('const_appProjName')]",
+            "type": "string"
+        },
+        "appImage": {
+            "condition": "[parameters('uploadAppPackage')]",
+            "value": "[variables('const_appImage')]",
+            "type": "string"
+        },
+        "appServerXmlEncoded (Use `echo \"copied-value\" | base64 -d` to decode the text)": {
+            "condition": "[parameters('uploadAppPackage')]",
+            "value": "[reference(variables('name_deploymentScriptName')).outputs.appServerXml]",
+            "type": "string"
+        },
+        "appDockerfileEncoded (Use `echo \"copied-value\" | base64 -d` to decode the text)": {
+            "condition": "[parameters('uploadAppPackage')]",
+            "value": "[reference(variables('name_deploymentScriptName')).outputs.appDockerfile]",
+            "type": "string"
+        },
+        "appDeploymentYamlEncoded (Use `echo \"copied-value\" | base64 -d` to decode the text)": {
+            "value": "[reference(variables('name_deploymentScriptName')).outputs.appDeploymentYaml]",
+            "type": "string"
+        },
+        "appEndpoint": {
+            "value": "[reference(variables('name_deploymentScriptName')).outputs.appEndpoint]",
+            "type": "string"
+        }
+    }
+}

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+     Copyright (c) Microsoft Corporation.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.ibm.websphere.azure</groupId>
+    <artifactId>azure.liberty.aro</artifactId>
+    <version>1.0.10</version>
+    
+    <parent>
+        <groupId>com.microsoft.azure.iaas</groupId>
+        <artifactId>azure-javaee-iaas-parent</artifactId>
+        <version>1.0.11</version>
+        <relativePath></relativePath>
+    </parent>
+    
+    <packaging>jar</packaging>
+    <name>${project.artifactId}</name>
+
+    <properties>
+        <test.parameters>-TestParameter '@{&quot;PasswordMinLength&quot;=6}'</test.parameters>
+        <azure.apiVersion>2020-06-01</azure.apiVersion>
+        <azure.apiVersion.vNetRoleAssignment>2018-09-01-preview</azure.apiVersion.vNetRoleAssignment>
+        <azure.apiVersion.aroCluster>2020-04-30</azure.apiVersion.aroCluster>
+        <azure.apiVersion.deploymentScript>2020-10-01</azure.apiVersion.deploymentScript>
+        <customer.usage.attribution.id>pid-1a2a9b5a-6c82-42de-a938-9fdb6ffe8e55-partnercenter</customer.usage.attribution.id>
+        <aro.start>acdd32ed-5fab-54b6-8d5a-097ed3dcfcf2</aro.start>
+        <aro.end>d9293179-8975-5587-b29f-8f09f2832c4f</aro.end>
+    </properties>
+</project>
