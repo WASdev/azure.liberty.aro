@@ -42,7 +42,7 @@
 
 ## After deployment
 
-1. If you check the resource group in [azure portal](https://portal.azure.com/), you will see a deploymentSript and/or a virtual network, an OpenShift cluster depending on if you choose to create a new ARO 4 cluster.
+1. If you check the resource group in [azure portal](https://portal.azure.com/), you will see a deploymentScript and/or a virtual network, an OpenShift cluster depending on if you choose to create a new ARO 4 cluster.
 1. For further administration:
    1. Login to Azure Portal
    1. Open the resource group you specified to deploy an application on the ARO 4 cluster

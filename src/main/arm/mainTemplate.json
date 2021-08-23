@@ -26,7 +26,7 @@
         "identity": {
             "type": "object",
             "metadata": {
-                "description": "User assigned managed identity granted with contributor role of the same subscription"
+                "description": "User-assigned managed identity granted with contributor role of the same subscription"
             }
         },
         "createCluster": {
@@ -94,7 +94,7 @@
             "type": "String",
             "defaultValue": "",
             "metadata": {
-                "description": "The ObjectID of the Resource Provider Service Principal"
+                "description": "The Object ID of the Resource Provider Service Principal"
             }
         },
         "masterVmSize": {
