@@ -8,7 +8,7 @@ on:
   repository_dispatch:
 env:
   refArmttk: d97aa57d259e2fc8562e11501b1cf902265129d9
-  refJavaee: 6addd99d8bc3f472e040f11c053a37e1ac370229
+  refJavaee: 85d5d10dd045a90452ae01cad20b258ce853ec18
   repoName: "azure.liberty.aro"
 
 jobs:
