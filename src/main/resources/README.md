@@ -27,7 +27,6 @@
 ### Category
 
 - Application Infrastructure
-- Client Operating System
 - Developer Service
 - Web
 
