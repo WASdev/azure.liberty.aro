@@ -22,14 +22,12 @@ wait_deployment_complete() {
     oc get deployment ${deploymentName} -n ${namespaceName}
     while [ $? -ne 0 ]
     do
+        echo "Wait until the deployment ${deploymentName} created..." >> $logFile
         sleep 5
         oc get deployment ${deploymentName} -n ${namespaceName}
     done
-    replicas=$(oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.spec.replicas}')
-    readyReplicas=$(oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.status.readyReplicas}')
-    availableReplicas=$(oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.status.availableReplicas}')
-    updatedReplicas=$(oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.status.updatedReplicas}')
-    while [[ $replicas != $readyReplicas || $readyReplicas != $availableReplicas || $availableReplicas != $updatedReplicas ]]
+    read -r -a replicas <<< `oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.spec.replicas}{" "}{.status.readyReplicas}{" "}{.status.availableReplicas}{" "}{.status.updatedReplicas}{"\n"}'`
+    while [[ ${#replicas[@]} -ne 4 || ${replicas[0]} != ${replicas[1]} || ${replicas[1]} != ${replicas[2]} || ${replicas[2]} != ${replicas[3]} ]]
     do
         # Delete pods in ImagePullBackOff status
         podIds=`oc get pod -n ${namespaceName} | grep ImagePullBackOff | awk '{print $1}'`
@@ -42,10 +40,7 @@ wait_deployment_complete() {
 
         sleep 5
         echo "Wait until the deployment ${deploymentName} completes..." >> $logFile
-        replicas=$(oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.spec.replicas}')
-        readyReplicas=$(oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.status.readyReplicas}')
-        availableReplicas=$(oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.status.availableReplicas}')
-        updatedReplicas=$(oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.status.updatedReplicas}')
+        read -r -a replicas <<< `oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.spec.replicas}{" "}{.status.readyReplicas}{" "}{.status.availableReplicas}{" "}{.status.updatedReplicas}{"\n"}'`
     done
     echo "Deployment ${deploymentName} completed." >> $logFile
 }

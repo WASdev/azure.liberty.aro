@@ -78,7 +78,7 @@ fi
 if [[ -z "$resourceGroupName" ]]; then
 	echo "This script will look for an existing resource group, otherwise a new one will be created "
 	echo "You can create new resource groups with the CLI using: az group create "
-	echo "Enter a resource group name"
+	echo "Enter a resource group name:"
 	read resourceGroupName
 	[[ "${resourceGroupName:?}" ]]
 fi
@@ -128,18 +128,18 @@ set +e
 az group show --name $resourceGroupName 1> /dev/null
 
 if [ $? != 0 ]; then
-	echo "Resource group with name" $resourceGroupName "could not be found. Creating new resource group.."
+	echo "Resource group with name" $resourceGroupName "could not be found. Creating new resource group..."
 	set -e
 	(
 		set -x
 		az group create --name $resourceGroupName --location $resourceGroupLocation 1> /dev/null
 	)
-	else
+else
 	echo "Using existing resource group..."
 fi
 resourceGroupLocation=$( az group show --name $resourceGroupName | jq -r '.location' )
 
-# Create storage account and upload appliation package file to storage account
+# Create storage account and upload application package file to storage account
 # Create storage account if not existing
 storageAccountName="${subscriptionId//-/}"
 storageAccountName="${storageAccountName:0:19}"
@@ -158,7 +158,7 @@ if [ $? != 0 ]; then
 		set -x
 		az group create --name $storageAccountRGName --location $resourceGroupLocation 1> /dev/null
 	)
-	else
+else
 	echo "Using existing resource group..."
 fi
 storageAccountRGLocation=$( az group show --name $storageAccountRGName | jq -r '.location' )
@@ -170,7 +170,7 @@ if [[ -z $( az storage account list -o json | jq -r --arg accountName "$storageA
 		set -x
 		az storage account create -l "$storageAccountRGLocation" --sku "Standard_LRS" -g "$storageAccountRGName" -n "$storageAccountName" >/dev/null 2>&1
 	)
-	else
+else
 	echo "Using existing storage account..."
 fi
 
@@ -185,7 +185,7 @@ if [[ $( az storage container exists --name "$storageContainerName" --account-na
 		set -x
 		az storage container create -n "$storageContainerName" --account-name "$storageAccountName" --account-key "$storageAccountKey" >/dev/null 2>&1
 	)
-	else
+else
 	echo "Using existing storage container..."
 fi
 
@@ -198,7 +198,7 @@ if [[ $( az storage blob exists -n "$fileName" -c "$storageContainerName" --acco
 		set -x
 		az storage blob upload -f "$appPackage" -c $storageContainerName -n "$fileName" --account-name "$storageAccountName" --account-key "$storageAccountKey"
 	)
-	else
+else
 	echo "Using existing storage blob..."
 fi
 

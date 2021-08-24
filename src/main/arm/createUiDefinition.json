@@ -10,7 +10,7 @@
                 "visible": "[less(length(basics('identity').userAssignedIdentities),1)]",
                 "options": {
                     "icon": "Error",
-                    "text": "Please select one user assigned managed identity granted with contributor role of the subscription.<br><br>You can find more details from the following articles:<li><a href='https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-manage-user-assigned-managed-identities?pivots=identity-mi-methods-azp#create-a-user-assigned-managed-identity' target='_blank'>Create a user-assigned managed identity</a></li><li><a href='https://docs.microsoft.com/azure/role-based-access-control/role-assignments-portal-managed-identity#user-assigned-managed-identity' target='_blank'>Assign a role to a user-assigned managed identity</a></li>"
+                    "text": "Please select one user-assigned managed identity granted with contributor role of the subscription.<br><br>You can find more details from the following articles:<li><a href='https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-manage-user-assigned-managed-identities?pivots=identity-mi-methods-azp#create-a-user-assigned-managed-identity' target='_blank'>Create a user-assigned managed identity</a></li><li><a href='https://docs.microsoft.com/azure/role-based-access-control/role-assignments-portal-managed-identity#user-assigned-managed-identity' target='_blank'>Assign a role to a user-assigned managed identity</a></li>"
                 }
             },
             {
@@ -18,7 +18,7 @@
                 "type": "Microsoft.ManagedIdentity.IdentitySelector",
                 "label": "Managed Identity Configuration",
                 "toolTip": {
-                    "userAssignedIdentity": "Add user assigned managed identity granted with contributor role of the subscription to enable the application deployment."
+                    "userAssignedIdentity": "Add a user-assigned managed identity granted with contributor role of the subscription to enable the application deployment."
                 },
                 "defaultValue": {
                     "systemAssignedIdentity": "Off"
