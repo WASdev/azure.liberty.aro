@@ -20,7 +20,7 @@
 
     <groupId>com.ibm.websphere.azure</groupId>
     <artifactId>azure.liberty.aro</artifactId>
-    <version>1.0.12</version>
+    <version>1.0.13</version>
     
     <parent>
         <groupId>com.microsoft.azure.iaas</groupId>
@@ -38,7 +38,8 @@
         <azure.apiVersion.vNetRoleAssignment>2018-09-01-preview</azure.apiVersion.vNetRoleAssignment>
         <azure.apiVersion.aroCluster>2020-04-30</azure.apiVersion.aroCluster>
         <azure.apiVersion.deploymentScript>2020-10-01</azure.apiVersion.deploymentScript>
-        <customer.usage.attribution.id>pid-1a2a9b5a-6c82-42de-a938-9fdb6ffe8e55-partnercenter</customer.usage.attribution.id>
+        <!--Testing PID <customer.usage.attribution.id>pid-1a2a9b5a-6c82-42de-a938-9fdb6ffe8e55-partnercenter</customer.usage.attribution.id> -->
+        <customer.usage.attribution.id>pid-8942a2f7-32d6-4b69-b504-4c2fb23fe059-partnercenter</customer.usage.attribution.id>
         <aro.start>acdd32ed-5fab-54b6-8d5a-097ed3dcfcf2</aro.start>
         <aro.end>d9293179-8975-5587-b29f-8f09f2832c4f</aro.end>
     </properties>

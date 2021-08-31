@@ -61,7 +61,7 @@
 - [Overview](https://openliberty.io/)
 - [Learn more](https://openliberty.io/guides/)
 - [Documentation](https://openliberty.io/docs/)
-- [Pricing (Bring Your Own WebSphere Server License, pay as you go for Azure resources)](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/) ???
+- [Pricing (Bring Your Own WebSphere Server License, pay as you go for Azure resources)](https://azure.microsoft.com/en-us/pricing/details/openshift/) ???
 - [IBM Pricing Policy](http://www-01.ibm.com/software/passportadvantage/eligible_public_cloud_BYOSL_policy.html) ???
 
 ### Contact Information
@@ -170,8 +170,8 @@
 - Version
   - <version_number>
 - Package file (.zip)
-  - Run `mvn -Dtest.args="-Test All" -Ptemplate-validation-tests clean install`
-  - Find `azure.websphere-traditional.cluster-<version_number>-arm-assembly.zip` in the `target` directory
+  - Run `mvn -Ptemplate-validation-tests clean install`
+  - Find `azure.liberty.aro-<version-number>-arm-assembly.zip` in the `target` directory
 
 ## CSP Reseller audience
 
