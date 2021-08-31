@@ -10,7 +10,7 @@
                 "visible": "[less(length(basics('identity').userAssignedIdentities),1)]",
                 "options": {
                     "icon": "Error",
-                    "text": "Please select one user-assigned managed identity granted with contributor role of the subscription.<br><br>You can find more details from the following articles:<li><a href='https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-manage-user-assigned-managed-identities?pivots=identity-mi-methods-azp#create-a-user-assigned-managed-identity' target='_blank'>Create a user-assigned managed identity</a></li><li><a href='https://docs.microsoft.com/azure/role-based-access-control/role-assignments-portal-managed-identity#user-assigned-managed-identity' target='_blank'>Assign a role to a user-assigned managed identity</a></li>"
+                    "text": "Select one user-assigned managed identity that has a contributor role in the subscription.<br><br>You can find more details from the following articles:<li><a href='https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-manage-user-assigned-managed-identities?pivots=identity-mi-methods-azp#create-a-user-assigned-managed-identity' target='_blank'>Create a user-assigned managed identity</a></li><li><a href='https://docs.microsoft.com/azure/role-based-access-control/role-assignments-portal-managed-identity#user-assigned-managed-identity' target='_blank'>Assign a role to a user-assigned managed identity</a></li>"
                 }
             },
             {
@@ -18,7 +18,7 @@
                 "type": "Microsoft.ManagedIdentity.IdentitySelector",
                 "label": "Managed Identity Configuration",
                 "toolTip": {
-                    "userAssignedIdentity": "Add a user-assigned managed identity granted with contributor role of the subscription to enable the application deployment."
+                    "userAssignedIdentity": "Add a user-assigned managed identity that has a contributor role in the subscription to enable the application deployment."
                 },
                 "defaultValue": {
                     "systemAssignedIdentity": "Off"
@@ -71,7 +71,7 @@
                                     "password": "Pull secret",
                                     "confirmPassword": "Confirm secret"
                                 },
-                                "toolTip": "The pull secret text that you obtained from the Red Hat OpenShift Cluster Manager website.<br><br>Follow steps below to get the pull secret:<li><a href='https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#get-a-red-hat-pull-secret-optional' target='_blank'>Get a Red Hat pull secret</a>.</li>",
+                                "toolTip": "The pull secret text that you obtained from the Red Hat OpenShift Cluster Manager website.<br><br>To get pull secret text, see <a href='https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#get-a-red-hat-pull-secret-optional' target='_blank'>Get a Red Hat pull secret</a>.",
                                 "constraints": {
                                     "required": true,
                                     "regex": "^.{8,}$",
@@ -82,11 +82,11 @@
                                 "name": "aadClientId",
                                 "type": "Microsoft.Common.TextBox",
                                 "label": "Application (client) ID",
-                                "toolTip": "The application ID of an Azure AD client application.<br><br>Follow steps below to get the Application (client) ID:<li><a href='https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application' target='_blank'>Register an application</a> or find an existing app registration from the \"<a href='https://portal.azure.com/' target='_blank'>Azure portal</a> > <b>App registrations</b>\".</li><li>Copy the <b>Application (client) ID</b> value from the app registration's <b>Overview</b> pane.</li>",
+                                "toolTip": "The application ID of an Azure AD client application.<br><br>To get the application (client) ID value:<ol><li><a href='https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application' target='_blank'>Register an application</a> or find an existing app registration from the <a href='https://portal.azure.com/' target='_blank'>Azure portal</a> <b>App registrations</b>.</li><li>Copy the <b>Application (client) ID</b> value from the app registration's <b>Overview</b> pane.</li></ol>",
                                 "constraints": {
                                     "required": true,
                                     "regex": "^[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}$",
-                                    "validationMessage": "The application (client) ID should be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
+                                    "validationMessage": "The application (client) ID must be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
                                 }
                             },
                             {
@@ -96,7 +96,7 @@
                                     "password": "Client secret",
                                     "confirmPassword": "Confirm secret"
                                 },
-                                "toolTip": "The client secret of the service principal for the Azure AD client application.<br><br>Follow steps below to get the client secret:<li><a href='https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app#add-a-client-secret' target='_blank'>Add a client secret</a>.</li><li>Copy the secret's value.</li>",
+                                "toolTip": "The client secret of the service principal for the Azure AD client application.<br><br>To get the client secret, <a href='https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app#add-a-client-secret' target='_blank'>add a client secret</a> and copy the secret’s value.",
                                 "constraints": {
                                     "required": true,
                                     "regex": "^.{8,}$",
@@ -107,22 +107,22 @@
                                 "name": "aadObjectId",
                                 "type": "Microsoft.Common.TextBox",
                                 "label": "Object ID",
-                                "toolTip": "The object ID of the service principal for the Azure AD client application.<br><br>Follow steps below to get the service principal object ID:<li>In the <a href='https://portal.azure.com/' target='_blank'>Azure portal</a>, search for and select <b>Enterprise applications</b>.</li><li>In <b>Application type</b>, select <b>All applications</b>.</li><li>In the application search box, paste the <b>Application (client) ID</b> value. When the app registration appears in the search results table, select and copy the corresponding value in the <b>Object ID</b> column.</li>",
+                                "toolTip": "The object ID of the service principal for the Azure AD client application.<br><br>To get the service principal object ID value:<ol><li>In the <a href='https://portal.azure.com/' target='_blank'>Azure portal</a>, search for and select <b>Enterprise applications</b>.</li><li>In <b>Application type</b>, select <b>All applications</b>.</li><li>In the application search box, paste the <b>Application (client) ID</b> value. After the app registration appears in the search results table, select and copy the corresponding value in the <b>Object ID</b> column.</li></ol>",
                                 "constraints": {
                                     "required": true,
                                     "regex": "^[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}$",
-                                    "validationMessage": "The object ID should be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
+                                    "validationMessage": "The object ID must be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
                                 }
                             },
                             {
                                 "name": "rpObjectId",
                                 "type": "Microsoft.Common.TextBox",
                                 "label": "Object ID of Azure Red Hat OpenShift Resource Provider",
-                                "toolTip": "The object ID of the service principal for the Azure Red Hat OpenShift Resource Provider.<br><br>Follow steps below to get the service principal object ID:<li>In the <a href='https://portal.azure.com/' target='_blank'>Azure portal</a>, search for and select <b>Enterprise applications</b>.</li><li>In <b>Application type</b>, select <b>All applications</b>.</li><li>In the application search box, paste <b>Azure Red Hat OpenShift RP</b>. When the app registration appears in the search results table, select and copy the corresponding value in the <b>Object ID</b> column.</li>",
+                                "toolTip": "The object ID of the service principal for the Azure Red Hat OpenShift Resource Provider.<br><br>To get the service principal object ID value:<ol><li>In the <a href='https://portal.azure.com/' target='_blank'>Azure portal</a>, search for and select <b>Enterprise applications</b>.</li><li>In <b>Application type</b>, select <b>All applications</b>.</li><li>In the application search box, paste <b>Azure Red Hat OpenShift RP</b>. After the app registration appears in the search results table, select and copy the corresponding value in the <b>Object ID</b> column.</li></ol>",
                                 "constraints": {
                                     "required": true,
                                     "regex": "^[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}$",
-                                    "validationMessage": "The object ID should be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
+                                    "validationMessage": "The object ID must be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
                                 }
                             }
                         ],
@@ -198,7 +198,7 @@
                         "type": "Microsoft.Common.OptionsGroup",
                         "label": "Deploy your application package?",
                         "defaultValue": "Yes",
-                        "toolTip": "Select 'Yes' to deploy your application, or select 'No' to deploy a default 'Hello world' Open Liberty/WebSphere Liberty application.",
+                        "toolTip": "Select 'Yes' to deploy your application, or select 'No' to deploy a default 'Hello world' Open Liberty or WebSphere Liberty application.",
                         "constraints": {
                             "allowedValues": [
                                 {
@@ -222,7 +222,7 @@
                                 "name": "appPackageUrl",
                                 "type": "Microsoft.Common.FileUpload",
                                 "label": "Application package (.war)",
-                                "toolTip": "The application war package to deploy.",
+                                "toolTip": "The web application resource (WAR) to deploy.",
                                 "constraints": {
                                     "required": true
                                 },
@@ -257,7 +257,7 @@
                                 "type": "Microsoft.Common.OptionsGroup",
                                 "label": "Application server runtime",
                                 "defaultValue": "Open Liberty",
-                                "toolTip": "Select 'Open Liberty' if you prefer Open Source runtime, or select 'WebSphere Liberty' if you prefer commercial version of Open Liberty.",
+                                "toolTip": "Select 'Open Liberty' if you prefer the open source runtime, or select 'WebSphere Liberty' if you prefer the commercial version of Liberty.",
                                 "constraints": {
                                     "allowedValues": [
                                         {
@@ -277,7 +277,7 @@
                                 "type": "Microsoft.Common.OptionsGroup",
                                 "label": "Application Java runtime",
                                 "defaultValue": "Java 8",
-                                "toolTip": "Select Java version for your application.",
+                                "toolTip": "Select the Java runtime version for your application.",
                                 "constraints": {
                                     "allowedValues": [
                                         {
