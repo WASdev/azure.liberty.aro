@@ -34,12 +34,6 @@
         "aadClientSecret": {
             "value": "${aadClientSecret}"
         },
-        "aadObjectId": {
-            "value": "${aadObjectId}"
-        },
-        "rpObjectId": {
-            "value": "${rpObjectId}"
-        },
         "uploadAppPackage": {
             "value": "${uploadAppPackage}"
         },

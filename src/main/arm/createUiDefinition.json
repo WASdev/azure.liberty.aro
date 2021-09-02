@@ -102,28 +102,6 @@
                                     "regex": "^.{8,}$",
                                     "validationMessage": "A valid client secret is required."
                                 }
-                            },
-                            {
-                                "name": "aadObjectId",
-                                "type": "Microsoft.Common.TextBox",
-                                "label": "Object ID",
-                                "toolTip": "The object ID of the service principal for the Azure AD client application.<br><br>To get the service principal object ID value:<ol><li>In the <a href='https://portal.azure.com/' target='_blank'>Azure portal</a>, search for and select <b>Enterprise applications</b>.</li><li>In <b>Application type</b>, select <b>All applications</b>.</li><li>In the application search box, paste the <b>Application (client) ID</b> value. After the app registration appears in the search results table, select and copy the corresponding value in the <b>Object ID</b> column.</li></ol>",
-                                "constraints": {
-                                    "required": true,
-                                    "regex": "^[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}$",
-                                    "validationMessage": "The object ID must be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
-                                }
-                            },
-                            {
-                                "name": "rpObjectId",
-                                "type": "Microsoft.Common.TextBox",
-                                "label": "Object ID of Azure Red Hat OpenShift Resource Provider",
-                                "toolTip": "The object ID of the service principal for the Azure Red Hat OpenShift Resource Provider.<br><br>To get the service principal object ID value:<ol><li>In the <a href='https://portal.azure.com/' target='_blank'>Azure portal</a>, search for and select <b>Enterprise applications</b>.</li><li>In <b>Application type</b>, select <b>All applications</b>.</li><li>In the application search box, paste <b>Azure Red Hat OpenShift RP</b>. After the app registration appears in the search results table, select and copy the corresponding value in the <b>Object ID</b> column.</li></ol>",
-                                "constraints": {
-                                    "required": true,
-                                    "regex": "^[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}$",
-                                    "validationMessage": "The object ID must be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
-                                }
                             }
                         ],
                         "visible": "[bool(steps('Cluster').createCluster)]"
@@ -324,8 +302,6 @@
             "pullSecret": "[steps('Cluster').createClusterInfo.pullSecret]",
             "aadClientId": "[steps('Cluster').createClusterInfo.aadClientId]",
             "aadClientSecret": "[steps('Cluster').createClusterInfo.aadClientSecret]",
-            "aadObjectId": "[steps('Cluster').createClusterInfo.aadObjectId]",
-            "rpObjectId": "[steps('Cluster').createClusterInfo.rpObjectId]",
             "clusterName": "[last(split(steps('Cluster').clusterInfo.clusterSelector.id, '/'))]",
             "clusterRGName": "[last(take(split(steps('Cluster').clusterInfo.clusterSelector.id, '/'), 5))]",
             "projMgrUsername": "[steps('Cluster').projectMgrInfo.projMgrUsername]",
