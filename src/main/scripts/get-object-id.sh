@@ -18,7 +18,15 @@ appClientId=$1
 
 # Get object IDs
 appSpObjectId=$(az ad sp show --id ${appClientId} --query 'objectId' -o tsv)
+if [[ $? != 0 ]]; then
+  echo "Failed to get objectId for ${appClientId}."
+  exit 1
+fi
 aroRpSpObjectId=$(az ad sp list --display-name "Azure Red Hat OpenShift RP" --query '[0].objectId' -o tsv)
+if [[ $? != 0 ]]; then
+  echo "Failed to get objectId for \"Azure Red Hat OpenShift RP\"."
+  exit 1
+fi
 
 # Write outputs to deployment script output path
 result=$(jq -n -c --arg appSpObjectId $appSpObjectId '{appSpObjectId: $appSpObjectId}')
