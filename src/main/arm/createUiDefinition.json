@@ -7,10 +7,10 @@
             {
                 "name": "errInfo",
                 "type": "Microsoft.Common.InfoBox",
-                "visible": "[less(length(basics('identity').userAssignedIdentities),1)]",
+                "visible": "[less(length(basics('identity').userAssignedIdentities), 1)]",
                 "options": {
                     "icon": "Error",
-                    "text": "Select one user-assigned managed identity that has a contributor role in the subscription.<br><br>You can find more details from the following articles:<li><a href='https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-manage-user-assigned-managed-identities?pivots=identity-mi-methods-azp#create-a-user-assigned-managed-identity' target='_blank'>Create a user-assigned managed identity</a></li><li><a href='https://docs.microsoft.com/azure/role-based-access-control/role-assignments-portal-managed-identity#user-assigned-managed-identity' target='_blank'>Assign a role to a user-assigned managed identity</a></li>"
+                    "text": "[concat('Select one user-assigned managed identity that has a <b>Contributor</b> role in the subscription', if(bool(${require.objectId}), '', ' and an <b>Application administrator</b> role in Azure AD'), '.<br><br>You can find more details from the following articles:<li><a href=\\'https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-manage-user-assigned-managed-identities?pivots=identity-mi-methods-azp#create-a-user-assigned-managed-identity\\' target=\\'_blank\\'>Create a user-assigned managed identity</a></li><li><a href=\\'https://docs.microsoft.com/azure/role-based-access-control/role-assignments-portal-managed-identity#user-assigned-managed-identity\\' target=\\'_blank\\'>Assign a role to a user-assigned managed identity</a></li>', if(bool(${require.objectId}), '', '<li><a href=\\'https://docs.microsoft.com/azure/active-directory/roles/manage-roles-portal#assign-a-role\\' target=\\'_blank\\'>Assign Azure AD roles to a user-assigned managed identity</a></li>'))]"
                 }
             },
             {
@@ -18,7 +18,7 @@
                 "type": "Microsoft.ManagedIdentity.IdentitySelector",
                 "label": "Managed Identity Configuration",
                 "toolTip": {
-                    "userAssignedIdentity": "Add a user-assigned managed identity that has a contributor role in the subscription to enable the application deployment."
+                    "userAssignedIdentity": "[concat('Add a user-assigned managed identity that has a <b>Contributor</b> role in the subscription', if(bool(${require.objectId}), '', ' and an <b>Application administrator</b> role in Azure AD'), ' to enable the application deployment.')]"
                 },
                 "defaultValue": {
                     "systemAssignedIdentity": "Off"
@@ -112,7 +112,8 @@
                                     "required": true,
                                     "regex": "^[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}$",
                                     "validationMessage": "The object ID must be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
-                                }
+                                },
+                                "visible": "[bool(${require.objectId})]"
                             },
                             {
                                 "name": "rpObjectId",
@@ -123,7 +124,8 @@
                                     "required": true,
                                     "regex": "^[0-9A-Fa-f]{8}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{4}[-][0-9A-Fa-f]{12}$",
                                     "validationMessage": "The object ID must be a valid global unique identifier (GUID). Example: 00000000-0000-0000-0000-000000000000"
-                                }
+                                },
+                                "visible": "[bool(${require.objectId})]"
                             }
                         ],
                         "visible": "[bool(steps('Cluster').createCluster)]"
