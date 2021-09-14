@@ -292,7 +292,7 @@
         },
         {
             "condition": "[parameters('createCluster')]",
-            "type": "Microsoft.RedHatOpenShift/OpenShiftClusters",
+            "type": "Microsoft.RedHatOpenShift/openShiftClusters",
             "apiVersion": "${azure.apiVersion.aroCluster}",
             "name": "[variables('name_clusterName')]",
             "location": "[parameters('location')]",
@@ -343,7 +343,7 @@
             "name": "[variables('name_deploymentScriptName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.RedHatOpenShift/OpenShiftClusters', variables('name_clusterName'))]"
+                "[resourceId('Microsoft.RedHatOpenShift/openShiftClusters', variables('name_clusterName'))]"
             ],
             "kind": "AzureCLI",
             "identity": "[parameters('identity')]",

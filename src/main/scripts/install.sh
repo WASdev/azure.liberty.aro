@@ -80,7 +80,7 @@ apiServerUrl=$(az aro show -g $clusterRGName -n $clusterName --query 'apiserverP
 consoleUrl=$(az aro show -g $clusterRGName -n $clusterName --query 'consoleProfile.url' -o tsv)
 oc login -u $kubeadminUsername -p $kubeadminPassword --server="$apiServerUrl" >> $logFile
 
-# Install Open Liberty Operator V0.7
+# Install Open Liberty Operator V0.7.0
 oc apply -f open-liberty-operator-subscription.yaml >> $logFile
 wait_deployment_complete open-liberty-operator openshift-operators ${logFile}
 
