@@ -27,7 +27,75 @@
                     "hideSystemAssignedIdentity": true,
                     "hideUserAssignedIdentity": false
                 }
-            }
+            },
+            {
+                "name": "howToReportIssues",
+                "type": "Microsoft.Common.Section",
+                "label": "Report issues, get help, and share feedback",
+                "elements": [
+                    {
+                        "name": "howToReportIssueText",
+                        "type": "Microsoft.Common.TextBlock",
+                        "visible": true,
+                        "options": {
+                            "text": "If you encounter problems during deployment of Liberty on Azure, please report them here.",
+                            "link": {
+                                "label": "Issue tracker",
+                                "uri": "https://aka.ms/azure-liberty-aro-issues"
+                            }
+                        }   
+                    },
+                    {
+                        "name": "howToReportVendorIssueText",
+                        "type": "Microsoft.Common.TextBlock",
+                        "visible": true,
+                        "options": {
+                            "text": "If you have problems with the offer after successful deployment, and you have purchased licenses that entitle you to IBM support for Liberty, please raise a ticket.",
+                            "link": {
+                                "label": "IBM support",
+                                "uri": "https://www.ibm.com/mysupport/"
+                            }
+                        }   
+                    },
+                    {
+                        "name": "howToCommunityHelp",
+                        "type": "Microsoft.Common.TextBlock",
+                        "visible": true,
+                        "options": {
+                            "text": "If you want to interact directly with the Open Liberty community, check out the community options.",
+                            "link": {
+                                "label": "Community support",
+                                "uri": "https://openliberty.io/support/"
+                            }
+                        }
+                    },
+                    {
+                        "name": "howToStackOverflow",
+                        "type": "Microsoft.Common.TextBlock",
+                        "visible": true,
+                        "options": {
+                            "text": "If you want to ask questions about WebSphere Liberty, please use the IBM support option or ask on StackOverflow.",
+                            "link": {
+                                "label": "StackOverflow",
+                                "uri": "https://stackoverflow.com/questions/tagged/websphere-liberty"
+                            }
+                        }
+                    },
+                    {
+                        "name": "survey",
+                        "type": "Microsoft.Common.TextBlock",
+                        "visible": true,
+                        "options": {
+                            "text": "To get free help with Azure migration from the development team, fill out this survey.",
+                            "link": {
+                                "label": "Take survey",
+                                "uri": "https://aka.ms/ibm-stack-migration-survey"
+                            }
+                        }
+                    }                    
+                ],
+                "visible": true
+            }            
         ],
         "steps": [
             {
