@@ -22,7 +22,7 @@ wait_subscription_created() {
     oc get packagemanifests -n openshift-marketplace | grep -q ${subscriptionName}
     while [ $? -ne 0 ]
     do
-        echo "Wait until the Operator ${subscriptionName} available to the cluster from OperatorHub..." >> $logFile
+        echo "Wait until the Operator ${subscriptionName} is available to the cluster from OperatorHub..." >> $logFile
         sleep 5
         oc get packagemanifests -n openshift-marketplace | grep -q ${subscriptionName}
     done
@@ -38,7 +38,7 @@ wait_subscription_created() {
     oc get subscription ${subscriptionName} -n ${namespaceName}
     while [ $? -ne 0 ]
     do
-        echo "Wait until the subscription ${subscriptionName} created..." >> $logFile
+        echo "Wait until the subscription ${subscriptionName} is created..." >> $logFile
         sleep 5
         oc get subscription ${subscriptionName} -n ${namespaceName}
     done
