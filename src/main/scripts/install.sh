@@ -14,6 +14,37 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+wait_subscription_created() {
+    subscriptionName=$1
+    namespaceName=$2
+    logFile=$3
+
+    oc get packagemanifests -n openshift-marketplace | grep -q ${subscriptionName}
+    while [ $? -ne 0 ]
+    do
+        echo "Wait until the Operator ${subscriptionName} is available to the cluster from OperatorHub..." >> $logFile
+        sleep 5
+        oc get packagemanifests -n openshift-marketplace | grep -q ${subscriptionName}
+    done
+
+    oc apply -f open-liberty-operator-subscription.yaml >> $logFile
+    while [ $? -ne 0 ]
+    do
+        echo "Failed to create subscription ${subscriptionName}, retry..." >> $logFile
+        sleep 5
+        oc apply -f open-liberty-operator-subscription.yaml >> $logFile
+    done
+
+    oc get subscription ${subscriptionName} -n ${namespaceName}
+    while [ $? -ne 0 ]
+    do
+        echo "Wait until the subscription ${subscriptionName} is created..." >> $logFile
+        sleep 5
+        oc get subscription ${subscriptionName} -n ${namespaceName}
+    done
+    echo "Subscription ${subscriptionName} created." >> $logFile
+}
+
 wait_deployment_complete() {
     deploymentName=$1
     namespaceName=$2
@@ -81,7 +112,7 @@ consoleUrl=$(az aro show -g $clusterRGName -n $clusterName --query 'consoleProfi
 oc login -u $kubeadminUsername -p $kubeadminPassword --server="$apiServerUrl" >> $logFile
 
 # Install Open Liberty Operator V0.7.0
-oc apply -f open-liberty-operator-subscription.yaml >> $logFile
+wait_subscription_created open-liberty-certified openshift-operators ${logFile}
 wait_deployment_complete open-liberty-operator openshift-operators ${logFile}
 
 # Configure an HTPasswd identity provider
@@ -214,6 +245,7 @@ appEndpoint=$(echo ${appEndpoint}${Context_Root})
 
 # Write outputs to deployment script output path
 result=$(jq -n -c --arg consoleUrl $consoleUrl '{consoleUrl: $consoleUrl}')
+result=$(echo "$result" | jq --arg containerRegistryUrl "$registryHost" '{"containerRegistryUrl": $containerRegistryUrl} + .')
 if [ "$uploadAppPackage" = True ]; then
     result=$(echo "$result" | jq --arg appServerXml "$appServerXml" '{"appServerXml": $appServerXml} + .')
     result=$(echo "$result" | jq --arg appDockerfile "$appDockerfile" '{"appDockerfile": $appDockerfile} + .')
