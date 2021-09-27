@@ -394,6 +394,10 @@
             "value": "[reference(variables('name_deploymentScriptName')).outputs.consoleUrl]",
             "type": "string"
         },
+        "containerRegistryUrl": {
+            "value": "[reference(variables('name_deploymentScriptName')).outputs.containerRegistryUrl]",
+            "type": "string"
+        },
         "appName": {
             "value": "[variables('const_appName')]",
             "type": "string"
