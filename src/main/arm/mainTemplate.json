@@ -171,6 +171,7 @@
         "const_clusterRGName": "[if(parameters('createCluster'), resourceGroup().name, parameters('clusterRGName'))]",
         "const_contribRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
         "const_scriptLocation": "[uri(parameters('_artifactsLocation'), 'scripts/')]",
+        "const_singleQuote": "'",
         "const_suffix": "[take(replace(parameters('guidValue'), '-', ''), 6)]",
         "name_clusterName": "[if(parameters('createCluster'), concat('cluster', variables('const_suffix')), parameters('clusterName'))]",
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
@@ -428,6 +429,14 @@
         "appEndpoint": {
             "value": "[reference(variables('name_deploymentScriptName')).outputs.appEndpoint]",
             "type": "string"
-        }
+        },
+        "cmdToGetKubeadminCredentials": {
+            "value": "[concat('az aro list-credentials -g ', variables('const_clusterRGName'), ' -n ', variables('name_clusterName'))]",
+            "type": "string"
+        },
+       "cmdToOcLogin": {
+            "value": "[concat('oc login ', '$(az aro show -g ', variables('const_clusterRGName'), ' -n ', variables('name_clusterName'), ' --query apiserverProfile.url -o tsv) -u kubeadmin -p $(az aro list-credentials -g ', variables('const_clusterRGName'), ' -n ', variables('name_clusterName'), '-o json) | jq -r ', variables('const_singleQuote'), '.kubeadminPassword', variables('const_singleQuote'))]",
+            "type": "string"
+        }        
     }
 }
