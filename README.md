@@ -25,7 +25,7 @@
 1. Build the project by replacing all placeholder `${<place_holder>}` with valid values
    1. Create a new ARO 4 cluster:
       ```bash
-      mvn -Dgit.repo=<repo_user> -Dgit.tag=<repo_tag> -DidentityId=<user-assigned-managed-identity-id> -DcreateCluster=true -DaadClientId=<aad-client-id> -DaadClientSecret=<aad-client-secret> -Drequire.objectId=<true|false> -DprojMgrUsername=<project-mgr-username> -DprojMgrPassword=<project-mgr-username> -DuploadAppPackage=<true|false> -DuseOpenLibertyImage=<true|false> -DuseJava8=<true|false> -DcontextRoot=<context-root>  -DappReplicas=<app-replicas> -Dtest.args="-Test All" -Ptemplate-validation-tests clean install
+      mvn -Dgit.repo=<repo_user> -Dgit.tag=<repo_tag> -DidentityId=<user-assigned-managed-identity-id> -DcreateCluster=true -DuamiHasAppAdminRole=<true|false> -DprojMgrUsername=<project-mgr-username> -DprojMgrPassword=<project-mgr-username> -DuploadAppPackage=<true|false> -DuseOpenLibertyImage=<true|false> -DuseJava8=<true|false> -DcontextRoot=<context-root>  -DappReplicas=<app-replicas> -Dtest.args="-Test All" -Ptemplate-validation-tests clean install
       ```
 
    1. Use an existing ARO 4 cluster:
@@ -37,7 +37,7 @@
 1. Using `deploy.azcli` to deploy
 
    ```bash
-   ./deploy.azcli -n <deploymentName> -i <subscriptionId> -g <resourceGroupName> -l eastus -f <app-package-path> -p <pull-secret-path> -a <aadObjectId> -r <rpObjectId>
+   ./deploy.azcli -n <deploymentName> -i <subscriptionId> -g <resourceGroupName> -l eastus -f <app-package-path> -p <pull-secret-path> -c <aadClientId> -s <aadClientSecret> -a <aadObjectId> -r <rpObjectId>
    ```
 
 ## After deployment

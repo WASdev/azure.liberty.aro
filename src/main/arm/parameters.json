@@ -28,12 +28,6 @@
         "projMgrPassword": {
             "value": "${projMgrPassword}"
         },
-        "aadClientId": {
-            "value": "${aadClientId}"
-        },
-        "aadClientSecret": {
-            "value": "${aadClientSecret}"
-        },
         "uploadAppPackage": {
             "value": "${uploadAppPackage}"
         },
