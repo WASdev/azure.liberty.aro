@@ -14,21 +14,34 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-appClientId=$1
+# Create client application and service principal
+app=$(az ad app create --display-name ${AAD_CLIENT_NAME} --password ${AAD_CLIENT_SECRET})
+if [[ $? != 0 ]]; then
+  echo "Failed to register application ${AAD_CLIENT_NAME}." >&2
+  exit 1
+fi
+appClientId=$(echo $app | jq -r '.appId')
 
-# Get object IDs
+az ad sp create --id ${appClientId}
+if [[ $? != 0 ]]; then
+  echo "Failed to create service principal for ${appClientId}." >&2
+  exit 1
+fi
+
+# Get service principal object IDs
 appSpObjectId=$(az ad sp show --id ${appClientId} --query 'objectId' -o tsv)
 if [[ $? != 0 ]]; then
-  echo "Failed to get objectId for ${appClientId}."
+  echo "Failed to get service principal object ID for ${appClientId}."
   exit 1
 fi
 aroRpSpObjectId=$(az ad sp list --display-name "Azure Red Hat OpenShift RP" --query '[0].objectId' -o tsv)
 if [[ $? != 0 ]]; then
-  echo "Failed to get objectId for \"Azure Red Hat OpenShift RP\"."
+  echo "Failed to get service principal object ID for \"Azure Red Hat OpenShift RP\"."
   exit 1
 fi
 
 # Write outputs to deployment script output path
-result=$(jq -n -c --arg appSpObjectId $appSpObjectId '{appSpObjectId: $appSpObjectId}')
+result=$(jq -n -c --arg appClientId "$appClientId" '{appClientId: $appClientId}')
+result=$(echo "$result" | jq --arg appSpObjectId "$appSpObjectId" '{"appSpObjectId": $appSpObjectId} + .')
 result=$(echo "$result" | jq --arg aroRpSpObjectId "$aroRpSpObjectId" '{"aroRpSpObjectId": $aroRpSpObjectId} + .')
 echo $result > $AZ_SCRIPTS_OUTPUT_PATH

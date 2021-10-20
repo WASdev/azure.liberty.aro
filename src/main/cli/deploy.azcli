@@ -21,11 +21,13 @@ IFS=$'\n\t'
 # -o: prevents errors in a pipeline from being masked
 # IFS new value is less likely to cause confusing bugs when looping arrays or arguments (e.g. $@)
 
-usage() { echo "Usage: $0 -n <deploymentName> -f <appPackage> -p <pullSecretFile> -a <aadObjectId> -r <rpObjectId> -i <subscriptionId> -g <resourceGroupName> -l <resourceGroupLocation>" 1>&2; exit 1; }
+usage() { echo "Usage: $0 -n <deploymentName> -f <appPackage> -p <pullSecretFile> -c <aadClientId> -s <aadClientSecret> -a <aadObjectId> -r <rpObjectId> -i <subscriptionId> -g <resourceGroupName> -l <resourceGroupLocation>" 1>&2; exit 1; }
 
 declare deploymentName=""
 declare appPackage=""
 declare pullSecretFile=""
+declare aadClientId=""
+declare aadClientSecret=""
 declare aadObjectId=""
 declare rpObjectId=""
 declare subscriptionId=""
@@ -33,7 +35,7 @@ declare resourceGroupName=""
 declare resourceGroupLocation=""
 
 # Initialize parameters specified from command line
-while getopts ":n:f:p:i:g:l:a:r:" arg; do
+while getopts ":n:f:p:i:g:l:c:s:a:r:" arg; do
 	case "${arg}" in
 		n)
 			deploymentName=${OPTARG}
@@ -43,6 +45,12 @@ while getopts ":n:f:p:i:g:l:a:r:" arg; do
 			;;
 		p)
 			pullSecretFile=${OPTARG}
+			;;
+		c)
+			aadClientId=${OPTARG}
+			;;
+		s)
+			aadClientSecret=${OPTARG}
 			;;
 		a)
 			aadObjectId=${OPTARG}
@@ -199,16 +207,20 @@ fi
 
 # Upload application package to storage container
 fileName=$(basename "$appPackage")
-if [[ $( az storage blob exists -n "$fileName" -c "$storageContainerName" --account-name "$storageAccountName" --account-key "$storageAccountKey" -o json | jq '.exists') = false ]]; then
-	echo "Storage blob with name" $fileName "could not be found. Creating new storage blob..."
+if [[ $( az storage blob exists -n "$fileName" -c "$storageContainerName" --account-name "$storageAccountName" --account-key "$storageAccountKey" -o json | jq '.exists') = true ]]; then
+    echo "Storage blob with name ${fileName} already existed. Deleting it..."
 	set -e
 	(
 		set -x
-		az storage blob upload -f "$appPackage" -c $storageContainerName -n "$fileName" --account-name "$storageAccountName" --account-key "$storageAccountKey"
+		az storage blob delete -c $storageContainerName -n "$fileName" --account-name "$storageAccountName" --account-key "$storageAccountKey"
 	)
-else
-	echo "Using existing storage blob..."
 fi
+echo "Creating blob with name ${fileName}..."
+set -e
+(
+    set -x
+    az storage blob upload -f "$appPackage" -c $storageContainerName -n "$fileName" --account-name "$storageAccountName" --account-key "$storageAccountKey"
+)
 
 set +u
 
@@ -241,6 +253,8 @@ appReplicas=$( echo $parametersJson | jq '.appReplicas.value' | sed 's/"//g' )
 parametersJson=$( echo $parametersJson | jq --argjson replicas "$appReplicas" '.appReplicas.value = $replicas' )
 parametersJson=$( echo "$parametersJson" | jq --arg uri "$appPackageUrl" '{"appPackageUrl": {"value":$uri}} + .' )
 parametersJson=$( echo "$parametersJson" | jq --arg pullSecret "$pullSecret" '{"pullSecret": {"value":$pullSecret}} + .' )
+parametersJson=$( echo "$parametersJson" | jq --arg aadClientId "$aadClientId" '{"aadClientId": {"value":$aadClientId}} + .' )
+parametersJson=$( echo "$parametersJson" | jq --arg aadClientSecret "$aadClientSecret" '{"aadClientSecret": {"value":$aadClientSecret}} + .' )
 parametersJson=$( echo "$parametersJson" | jq --arg aadObjectId "$aadObjectId" '{"aadObjectId": {"value":$aadObjectId}} + .' )
 parametersJson=$( echo "$parametersJson" | jq --arg rpObjectId "$rpObjectId" '{"rpObjectId": {"value":$rpObjectId}} + .' )
 parametersJson=$( echo "$parametersJson" | jq -c '.' )

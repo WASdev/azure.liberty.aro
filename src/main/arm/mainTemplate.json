@@ -73,7 +73,7 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "The Application ID of an Azure Active Directory client application"
+                "description": "The application ID of an Azure Active Directory client application"
             }
         },
         "aadClientSecret": {
@@ -87,14 +87,14 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "The Object ID of an Azure Active Directory client application"
+                "description": "The service principal Object ID of an Azure Active Directory client application"
             }
         },
         "rpObjectId": {
             "type": "String",
             "defaultValue": "",
             "metadata": {
-                "description": "The Object ID of the Resource Provider Service Principal"
+                "description": "The service principal Object ID of the Azure Red Hat OpenShift Resource Provider"
             }
         },
         "masterVmSize": {
@@ -155,10 +155,12 @@
         },
         "guidValue": {
             "defaultValue": "[newGuid()]",
-            "type": "string"
+            "type": "securestring"
         }
     },
     "variables": {
+        "const_aadClientName": "[concat('aadclient', variables('const_suffix'))]",
+        "const_aadClientSecret": "[if(and(parameters('createCluster'), empty(parameters('aadClientSecret'))), guid(skip(replace(parameters('guidValue'), '-', ''), 6)), parameters('aadClientSecret'))]",
         "const_appImage": "[concat(variables('const_appImageName'), ':', variables('const_appImageTag'))]",
         "const_appImageName": "[concat('image', variables('const_suffix'))]",
         "const_appImageTag": "1.0.0",
@@ -174,8 +176,8 @@
         "const_suffix": "[take(replace(parameters('guidValue'), '-', ''), 6)]",
         "name_clusterName": "[if(parameters('createCluster'), concat('cluster', variables('const_suffix')), parameters('clusterName'))]",
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
-        "name_deploymentScriptName": "[concat('script', variables('const_suffix'))]",
-        "name_getObjectIdDeploymentScriptName": "[concat('getObjectIdScript', variables('const_suffix'))]"
+        "name_deploymentScriptName": "[concat('aroscript', variables('const_suffix'))]",
+        "name_spDeploymentScript": "[concat('spScript', variables('const_suffix'))]"
     },
     "resources": [
         {
@@ -207,17 +209,26 @@
             }
         },
         {
-            "condition": "[and(parameters('createCluster'), empty(parameters('aadObjectId')), empty(parameters('rpObjectId')))]",
+            "condition": "[and(parameters('createCluster'), or(empty(parameters('aadClientId')), empty(parameters('aadClientSecret')), empty(parameters('aadObjectId')), empty(parameters('rpObjectId'))))]",
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "${azure.apiVersion.deploymentScript}",
-            "name": "[variables('name_getObjectIdDeploymentScriptName')]",
+            "name": "[variables('name_spDeploymentScript')]",
             "location": "[parameters('location')]",
             "kind": "AzureCLI",
             "identity": "[parameters('identity')]",
             "properties": {
                 "AzCliVersion": "2.15.0",
-                "arguments": "[parameters('aadClientId')]",
-                "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('get-object-id.sh', parameters('_artifactsLocationSasToken')))]",
+                "environmentVariables": [
+                    {
+                        "name": "AAD_CLIENT_NAME",
+                        "value": "[variables('const_aadClientName')]"
+                    },
+                    {
+                        "name": "AAD_CLIENT_SECRET",
+                        "secureValue": "[variables('const_aadClientSecret')]"
+                    }
+                ],
+                "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('create-sp.sh', parameters('_artifactsLocationSasToken')))]",
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
             }
@@ -229,7 +240,7 @@
             "name": "[variables('name_clusterVNetName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deploymentScripts', variables('name_getObjectIdDeploymentScriptName'))]"
+                "[resourceId('Microsoft.Resources/deploymentScripts', variables('name_spDeploymentScript'))]"
             ],
             "properties": {
                 "addressSpace": {
@@ -274,7 +285,7 @@
             ],
             "properties": {
                 "roleDefinitionId": "[variables('const_contribRole')]",
-                "principalId": "[if(and(parameters('createCluster'), empty(parameters('aadObjectId'))), reference(variables('name_getObjectIdDeploymentScriptName')).outputs.appSpObjectId, parameters('aadObjectId'))]"
+                "principalId": "[if(and(parameters('createCluster'), empty(parameters('aadObjectId'))), reference(variables('name_spDeploymentScript')).outputs.appSpObjectId, parameters('aadObjectId'))]"
             }
         },
         {
@@ -287,7 +298,7 @@
             ],
             "properties": {
                 "roleDefinitionId": "[variables('const_contribRole')]",
-                "principalId": "[if(and(parameters('createCluster'), empty(parameters('rpObjectId'))), reference(variables('name_getObjectIdDeploymentScriptName')).outputs.aroRpSpObjectId, parameters('rpObjectId'))]"
+                "principalId": "[if(and(parameters('createCluster'), empty(parameters('rpObjectId'))), reference(variables('name_spDeploymentScript')).outputs.aroRpSpObjectId, parameters('rpObjectId'))]"
             }
         },
         {
@@ -310,8 +321,8 @@
                     "serviceCidr": "172.30.0.0/16"
                 },
                 "servicePrincipalProfile": {
-                    "clientId": "[parameters('aadClientId')]",
-                    "clientSecret": "[parameters('aadClientSecret')]"
+                    "clientId": "[if(and(parameters('createCluster'), empty(parameters('aadClientId'))), reference(variables('name_spDeploymentScript')).outputs.appClientId, parameters('aadClientId'))]",
+                    "clientSecret": "[variables('const_aadClientSecret')]"
                 },
                 "masterProfile": {
                     "vmSize": "[parameters('masterVmSize')]",

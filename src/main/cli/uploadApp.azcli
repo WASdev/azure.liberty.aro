@@ -133,16 +133,20 @@ fi
 
 # Upload application package to storage container
 fileName=$(basename "$appPackage")
-if [[ $( az storage blob exists -n "$fileName" -c "$storageContainerName" --account-name "$storageAccountName" --account-key "$storageAccountKey" -o json | jq '.exists') = false ]]; then
-	echo "Storage blob with name" $fileName "could not be found. Creating new storage blob..."
+if [[ $( az storage blob exists -n "$fileName" -c "$storageContainerName" --account-name "$storageAccountName" --account-key "$storageAccountKey" -o json | jq '.exists') = true ]]; then
+    echo "Storage blob with name ${fileName} already existed. Deleting it..."
 	set -e
 	(
 		set -x
-		az storage blob upload -f "$appPackage" -c $storageContainerName -n "$fileName" --account-name "$storageAccountName" --account-key "$storageAccountKey"
+		az storage blob delete -c $storageContainerName -n "$fileName" --account-name "$storageAccountName" --account-key "$storageAccountKey"
 	)
-else
-	echo "Using existing storage blob..."
 fi
+echo "Creating blob with name ${fileName}..."
+set -e
+(
+    set -x
+    az storage blob upload -f "$appPackage" -c $storageContainerName -n "$fileName" --account-name "$storageAccountName" --account-key "$storageAccountKey"
+)
 
 set +u
 

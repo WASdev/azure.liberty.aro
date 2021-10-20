@@ -20,7 +20,7 @@
 
     <groupId>com.ibm.websphere.azure</groupId>
     <artifactId>azure.liberty.aro</artifactId>
-    <version>1.0.17</version>
+    <version>1.0.18</version>
     
     <parent>
         <groupId>com.microsoft.azure.iaas</groupId>
@@ -42,6 +42,6 @@
         <customer.usage.attribution.id>pid-8942a2f7-32d6-4b69-b504-4c2fb23fe059-partnercenter</customer.usage.attribution.id>
         <aro.start>acdd32ed-5fab-54b6-8d5a-097ed3dcfcf2</aro.start>
         <aro.end>d9293179-8975-5587-b29f-8f09f2832c4f</aro.end>
-        <require.objectId>false</require.objectId>
+        <uamiHasAppAdminRole>true</uamiHasAppAdminRole>
     </properties>
 </project>
