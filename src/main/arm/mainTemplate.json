@@ -145,8 +145,8 @@
         "const_appImageTag": "1.0.0",
         "const_appName": "[concat('app', variables('const_suffix'))]",
         "const_appProjName": "[concat('project', variables('const_suffix'))]",
-        "const_arguments1": "[concat(variables('const_clusterRGName'), ' ', variables('name_clusterName'), ' ', parameters('projMgrUsername'), ' ', parameters('projMgrPassword'), ' ', variables('const_scriptLocation'), ' ', parameters('deployApplication'))]",
-        "const_arguments2": "[concat(' ', parameters('appImagePath'), ' ', variables('const_appName'), ' ', variables('const_appProjName'), ' ', variables('const_appImage'), ' ', parameters('appReplicas'))]",
+        "const_arguments1": "[concat(variables('const_clusterRGName'), ' ', variables('name_clusterName'), ' ', variables('const_scriptLocation'), ' ', parameters('deployApplication'))]",
+        "const_arguments2": "[concat(' ', if(empty(parameters('appImagePath')), 'NA', parameters('appImagePath')), ' ', variables('const_appName'), ' ', variables('const_appProjName'), ' ', variables('const_appImage'), ' ', parameters('appReplicas'))]",
         "const_clusterDomainName": "[concat('domain', variables('const_suffix'))]",
         "const_clusterRGName": "[if(parameters('createCluster'), resourceGroup().name, parameters('clusterRGName'))]",
         "const_contribRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
@@ -339,6 +339,16 @@
             "properties": {
                 "AzCliVersion": "2.15.0",
                 "arguments": "[concat(variables('const_arguments1'), variables('const_arguments2'))]",
+                "environmentVariables": [
+                    {
+                        "name": "PROJ_MGR_USERNAME",
+                        "value": "[parameters('projMgrUsername')]"
+                    },
+                    {
+                        "name": "PROJ_MGR_PASSWORD",
+                        "secureValue": "[parameters('projMgrPassword')]"
+                    }
+                ],
                 "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('install.sh', parameters('_artifactsLocationSasToken')))]",
                 "supportingScriptUris":[
                     "[uri(variables('const_scriptLocation'), concat('open-liberty-operator-subscription.yaml', parameters('_artifactsLocationSasToken')))]",
@@ -401,7 +411,7 @@
             "value": "[reference(variables('name_deploymentScriptName')).outputs.appDeploymentYaml]",
             "type": "string"
         },
-        "appEndpoint": {
+        "appEndpoint (Append context root defined in the 'server.xml' of your application if it's not equal to '/')": {
             "condition": "[parameters('deployApplication')]",
             "value": "[reference(variables('name_deploymentScriptName')).outputs.appEndpoint]",
             "type": "string"

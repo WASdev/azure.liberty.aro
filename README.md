@@ -25,12 +25,12 @@
 1. Build the project by replacing all placeholder `${<place_holder>}` with valid values
    1. Create a new ARO 4 cluster:
       ```bash
-      mvn -Dgit.repo=<repo_user> -Dgit.tag=<repo_tag> -DidentityId=<user-assigned-managed-identity-id> -DcreateCluster=true -DuamiHasAppAdminRole=<true|false> -DprojMgrUsername=<project-mgr-username> -DprojMgrPassword=<project-mgr-username> -DdeployApplication=<true|false> -DappReplicas=<app-replicas> -Dtest.args="-Test All" -Ptemplate-validation-tests clean install
+      mvn -Dgit.repo=<repo_user> -Dgit.tag=<repo_tag> -DidentityId=<user-assigned-managed-identity-id> -DcreateCluster=true -DuamiHasAppAdminRole=<true|false> -DprojMgrUsername=<project-mgr-username> -DprojMgrPassword=<project-mgr-username> -DdeployApplication=<true|false> -DappImagePath=<app-image-path> -DappReplicas=<app-replicas> -Dtest.args="-Test All" -Ptemplate-validation-tests clean install
       ```
 
    1. Use an existing ARO 4 cluster:
       ```bash
-      mvn -Dgit.repo=<repo_user> -Dgit.tag=<repo_tag> -DidentityId=<user-assigned-managed-identity-id> -DcreateCluster=false -DclusterName=<cluste-name> -DclusterRGName=<cluster-resource-group-name> -DprojMgrUsername=<project-mgr-username> -DprojMgrPassword=<project-mgr-username> -DdeployApplication=<true|false> -DappReplicas=<app-replicas> -Dtest.args="-Test All" -Ptemplate-validation-tests clean install
+      mvn -Dgit.repo=<repo_user> -Dgit.tag=<repo_tag> -DidentityId=<user-assigned-managed-identity-id> -DcreateCluster=false -DclusterName=<cluste-name> -DclusterRGName=<cluster-resource-group-name> -DprojMgrUsername=<project-mgr-username> -DprojMgrPassword=<project-mgr-username> -DdeployApplication=<true|false> -DappImagePath=<app-image-path> -DappReplicas=<app-replicas> -Dtest.args="-Test All" -Ptemplate-validation-tests clean install
       ```
 
 1. Change to `./target/cli` directory
@@ -48,4 +48,4 @@
    1. Open the resource group you specified to deploy an application on the ARO 4 cluster
    1. Navigate to "Deployments > specified_deployment_name > Outputs"
    1. To visit Red Hat OpenShift Container Platform web console: copy value of property `clusterConsoleUrl` > browse it in your browser and sign in with cluster project manager credentials you specified in cluster configuration
-   1. To visit applicatoin deployed to the ARO 4 cluster: copy value of property `appEndpoint` > open it in your browser
+   1. To visit applicatoin deployed to the ARO 4 cluster: copy value of property `appEndpoint` > append context root defined in the 'server.xml' of your application if it's not equal to '/' > open it in your browser

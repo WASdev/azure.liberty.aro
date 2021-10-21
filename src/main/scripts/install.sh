@@ -78,15 +78,15 @@ wait_deployment_complete() {
 
 clusterRGName=$1
 clusterName=$2
-projMgrUsername=$3
-projMgrPassword=$4
-scriptLocation=$5
-deployApplication=$6
-sourceImagePath=$7
-export Application_Name=$8
-export Project_Name=$9
-export Application_Image=${10}
-export Application_Replicas=${11}
+scriptLocation=$3
+deployApplication=$4
+sourceImagePath=$5
+export Application_Name=$6
+export Project_Name=$7
+export Application_Image=$8
+export Application_Replicas=$9
+projMgrUsername="$PROJ_MGR_USERNAME"
+projMgrPassword="$PROJ_MGR_PASSWORD"
 logFile=deployment.log
 
 # Install utilities
@@ -151,9 +151,9 @@ registryUsername=$(oc whoami)
 registryPassword=$(oc whoami -t)
 echo "registryUsername: $registryUsername" >> $logFile
 
-# Build application image or use default base image
+# Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then
-    # Create vm to build docker image
+    # Create vm to import docker image to the built-in container registry of the OpenShift cluster
     vmName="VM-UBUNTU-IMAGE-BUILDER-$(date +%s)"
     vmGroupName=${Application_Name}-$(date +%s)
     vmRegion=$(az aro show -g $clusterRGName -n $clusterName --query 'location' -o tsv)
@@ -203,7 +203,7 @@ if [ "$deployApplication" = True ]; then
         sleep 5
         oc get route ${Application_Name}
     done
-    appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')
+    appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')/
 fi
 
 # Write outputs to deployment script output path
