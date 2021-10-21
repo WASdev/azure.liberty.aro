@@ -28,17 +28,11 @@
         "projMgrPassword": {
             "value": "${projMgrPassword}"
         },
-        "uploadAppPackage": {
-            "value": "${uploadAppPackage}"
+        "deployApplication": {
+            "value": "${deployApplication}"
         },
-        "contextRoot": {
-            "value": "${contextRoot}"
-        },
-        "useOpenLibertyImage": {
-            "value": "${useOpenLibertyImage}"
-        },
-        "useJava8": {
-            "value": "${useJava8}"
+        "appImagePath": {
+            "value": "${appImagePath}"
         },
         "appReplicas": {
             "value": "${appReplicas}"

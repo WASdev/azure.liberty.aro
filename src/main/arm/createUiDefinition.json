@@ -266,11 +266,11 @@
                 "bladeTitle": "Configure application",
                 "elements": [
                     {
-                        "name": "uploadAppPackage",
+                        "name": "deployApplication",
                         "type": "Microsoft.Common.OptionsGroup",
-                        "label": "Deploy your application package?",
-                        "defaultValue": "Yes",
-                        "toolTip": "Select 'Yes' to deploy your application, or select 'No' to deploy a default 'Hello world' Open Liberty or WebSphere Liberty application.",
+                        "label": "Deploy an application?",
+                        "defaultValue": "No",
+                        "toolTip": "Select 'Yes' to deploy an application, or select 'No' if you prefer to manually deploy application later.",
                         "constraints": {
                             "allowedValues": [
                                 {
@@ -286,85 +286,48 @@
                         }
                     },
                     {
-                        "name": "appPackageInfo",
+                        "name": "appImageInfo",
                         "type": "Microsoft.Common.Section",
-                        "label": "Provide application package information",
+                        "label": "Provide application deployment information",
                         "elements": [
                             {
-                                "name": "appPackageUrl",
-                                "type": "Microsoft.Common.FileUpload",
-                                "label": "Application package (.war)",
-                                "toolTip": "The web application resource (WAR) to deploy.",
+                                "name": "appImageOption",
+                                "type": "Microsoft.Common.OptionsGroup",
+                                "label": "Deploy your own application or a sample application?",
+                                "defaultValue": "Your own application image",
+                                "toolTip": "Depoly an application image on top of Open Liberty or WebSphere Liberty base image.",
                                 "constraints": {
+                                    "allowedValues": [
+                                        {
+                                            "label": "Your own application image",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "label": "An Open Liberty sample application image: docker.io/openliberty/open-liberty-sample:1.0.0",
+                                            "value": "2"
+                                        },
+                                        {
+                                            "label": "A WebSphere Liberty sample application image: docker.io/ibmcom/websphere-liberty-sample:1.0.0",
+                                            "value": "3"
+                                        }
+                                    ],
                                     "required": true
-                                },
-                                "options": {
-                                    "multiple": false,
-                                    "uploadMode": "url",
-                                    "openMode": "binary"
                                 }
                             },
                             {
-                                "name": "contextRoot",
+                                "name": "appImagePath",
                                 "type": "Microsoft.Common.TextBox",
-                                "label": "Application context root",
-                                "defaultValue": "/",
-                                "toolTip": "Specify the context root of your application.",
+                                "label": "Application image path",
+                                "toolTip": "Specify the image path of your application.",
                                 "constraints": {
                                     "required": true,
-                                    "regex": "^\/.*$",
-                                    "validationMessage": "The value must start with '/'."
-                                }
+                                    "regex": "^(?:(?=[^:\/]{4,253})(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\\.(?!-)[a-zA-Z0-9-]{1,63}(?<!-))*(?::[0-9]{1,5})?/)?((?![._-])(?:[a-z0-9._-]*)(?<![._-])(?:/(?![._-])[a-z0-9._-]*(?<![._-]))*)(?::(?![.-])[a-zA-Z0-9_.-]{1,128})?$",
+                                    "validationMessage": "The value must be a valid image path."
+                                },
+                                "visible": "[equals(steps('Application').appImageInfo.appImageOption, '1')]"
                             }
                         ],
-                        "visible": "[bool(steps('Application').uploadAppPackage)]"
-                    },
-                    {
-                        "name": "appRuntimeInfo",
-                        "type": "Microsoft.Common.Section",
-                        "label": "Select runtime for the application",
-                        "elements": [
-                            {
-                                "name": "useOpenLibertyImage",
-                                "type": "Microsoft.Common.OptionsGroup",
-                                "label": "Application server runtime",
-                                "defaultValue": "Open Liberty",
-                                "toolTip": "Select 'Open Liberty' if you prefer the open source runtime, or select 'WebSphere Liberty' if you prefer the commercial version of Liberty.",
-                                "constraints": {
-                                    "allowedValues": [
-                                        {
-                                            "label": "Open Liberty",
-                                            "value": "true"
-                                        },
-                                        {
-                                            "label": "WebSphere Liberty",
-                                            "value": "false"
-                                        }
-                                    ],
-                                    "required": true
-                                }
-                            },
-                            {
-                                "name": "useJava8",
-                                "type": "Microsoft.Common.OptionsGroup",
-                                "label": "Application Java runtime",
-                                "defaultValue": "Java 8",
-                                "toolTip": "Select the Java runtime version for your application.",
-                                "constraints": {
-                                    "allowedValues": [
-                                        {
-                                            "label": "Java 8",
-                                            "value": "true"
-                                        },
-                                        {
-                                            "label": "Java 11",
-                                            "value": "false"
-                                        }
-                                    ],
-                                    "required": true
-                                }
-                            }
-                        ]
+                        "visible": "[bool(steps('Application').deployApplication)]"
                     },
                     {
                         "name": "appLoadBalancingInfo",
@@ -384,7 +347,8 @@
                                     "required": true
                                 }
                             }
-                        ]
+                        ],
+                        "visible": "[bool(steps('Application').deployApplication)]"
                     }
                 ]
             }
@@ -402,11 +366,8 @@
             "clusterRGName": "[last(take(split(steps('Cluster').clusterInfo.clusterSelector.id, '/'), 5))]",
             "projMgrUsername": "[steps('Cluster').projectMgrInfo.projMgrUsername]",
             "projMgrPassword": "[steps('Cluster').projectMgrInfo.projMgrPassword]",
-            "uploadAppPackage": "[bool(steps('Application').uploadAppPackage)]",
-            "appPackageUrl": "[steps('Application').appPackageInfo.appPackageUrl]",
-            "contextRoot": "[steps('Application').appPackageInfo.contextRoot]",
-            "useOpenLibertyImage": "[bool(steps('Application').appRuntimeInfo.useOpenLibertyImage)]",
-            "useJava8": "[bool(steps('Application').appRuntimeInfo.useJava8)]",
+            "deployApplication": "[bool(steps('Application').deployApplication)]",
+            "appImagePath": "[if(equals(steps('Application').appImageInfo.appImageOption, '1'), steps('Application').appImageInfo.appImagePath, if(equals(steps('Application').appImageInfo.appImageOption, '2'), 'docker.io/openliberty/open-liberty-sample:1.0.0', if(equals(steps('Application').appImageInfo.appImageOption, '3'), 'docker.io/ibmcom/websphere-liberty-sample:1.0.0', '')))]",
             "appReplicas": "[int(steps('Application').appLoadBalancingInfo.appReplicas)]"
         }
     }

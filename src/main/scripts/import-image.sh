@@ -14,17 +14,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-appPackageUrl=$1
-export Application_Name=$2
-export Application_Package=${Application_Name}.war
-export Context_Root=$3
-export Base_Image=$4
-dockerFileTemplate=$5
-registryHost=$6
-registryUsername=$7
-registryPassword=$8
-appProjName=$9
-appImage=${10}
+sourceImagePath=$1
+registryHost=$2
+registryUsername=$3
+registryPassword=$4
+appProjName=$5
+appImage=$6
 
 # Install docker and start docker daemon
 apt-get -q update
@@ -36,14 +31,9 @@ apt-get -q update
 apt-get -y -q install docker-ce docker-ce-cli containerd.io
 systemctl start docker
 
-# Download application package and prepare other artifacts
-wget -O ${Application_Package} "$appPackageUrl"
-envsubst < "server.xml.template" > "server.xml"
-envsubst < "${dockerFileTemplate}" > "Dockerfile"
-
-# Build and tag image
-docker build -t ${appImage} --pull .
-docker tag ${appImage} ${registryHost}/${appProjName}/${appImage}
+# Pull and tag image
+docker pull ${sourceImagePath}
+docker tag ${sourceImagePath} ${registryHost}/${appProjName}/${appImage}
 
 # Sign in to the built-in container image registry and push image
 docker login -u ${registryUsername} -p ${registryPassword} ${registryHost}

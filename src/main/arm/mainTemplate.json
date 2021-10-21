@@ -111,39 +111,18 @@
                 "description": "Worker Node VM Type"
             }
         },
-        "uploadAppPackage": {
+        "deployApplication": {
             "defaultValue": false,
             "type": "bool",
             "metadata": {
-                "description": "Flag indicating whether to deploy a user uploaded application or a default 'Hello world' application"
+                "description": "Flag indicating whether to deploy an application"
             }
         },
-        "appPackageUrl": {
+        "appImagePath": {
             "defaultValue": "",
             "type": "string",
             "metadata": {
-                "description": "The url to download user uploaded application package"
-            }
-        },
-        "contextRoot": {
-            "defaultValue": "/",
-            "type": "string",
-            "metadata": {
-                "description": "The context root of the application"
-            }
-        },
-        "useOpenLibertyImage": {
-            "defaultValue": true,
-            "type": "bool",
-            "metadata": {
-                "description": "Flag indicating whether to use Open Liberty or WebSphere Liberty as application base image"
-            }
-        },
-         "useJava8": {
-            "defaultValue": true,
-            "type": "bool",
-            "metadata": {
-                "description": "Flag indicating whether to use Java 8 as Java runtime of the application"
+                "description": "The image path of the application"
             }
         },
         "appReplicas": {
@@ -165,10 +144,9 @@
         "const_appImageName": "[concat('image', variables('const_suffix'))]",
         "const_appImageTag": "1.0.0",
         "const_appName": "[concat('app', variables('const_suffix'))]",
-        "const_appPackageUrl": "[if(parameters('uploadAppPackage'), parameters('appPackageUrl'), 'N/A')]",
         "const_appProjName": "[concat('project', variables('const_suffix'))]",
-        "const_arguments1": "[concat(variables('const_clusterRGName'), ' ', variables('name_clusterName'), ' ', parameters('projMgrUsername'), ' ', parameters('projMgrPassword'), ' ', variables('const_scriptLocation'), ' ', parameters('uploadAppPackage'), ' ', variables('const_appPackageUrl'))]",
-        "const_arguments2": "[concat(' ', parameters('contextRoot'), ' ', parameters('useOpenLibertyImage'), ' ', parameters('useJava8'), ' ', variables('const_appName'), ' ', variables('const_appProjName'), ' ', variables('const_appImage'), ' ', parameters('appReplicas'))]",
+        "const_arguments1": "[concat(variables('const_clusterRGName'), ' ', variables('name_clusterName'), ' ', parameters('projMgrUsername'), ' ', parameters('projMgrPassword'), ' ', variables('const_scriptLocation'), ' ', parameters('deployApplication'))]",
+        "const_arguments2": "[concat(' ', parameters('appImagePath'), ' ', variables('const_appName'), ' ', variables('const_appProjName'), ' ', variables('const_appImage'), ' ', parameters('appReplicas'))]",
         "const_clusterDomainName": "[concat('domain', variables('const_suffix'))]",
         "const_clusterRGName": "[if(parameters('createCluster'), resourceGroup().name, parameters('clusterRGName'))]",
         "const_contribRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
@@ -365,9 +343,6 @@
                 "supportingScriptUris":[
                     "[uri(variables('const_scriptLocation'), concat('open-liberty-operator-subscription.yaml', parameters('_artifactsLocationSasToken')))]",
                     "[uri(variables('const_scriptLocation'), concat('htpasswd-cr.yaml', parameters('_artifactsLocationSasToken')))]",
-                    "[uri(variables('const_scriptLocation'), concat('server.xml.template', parameters('_artifactsLocationSasToken')))]",
-                    "[uri(variables('const_scriptLocation'), concat('Dockerfile.template', parameters('_artifactsLocationSasToken')))]",
-                    "[uri(variables('const_scriptLocation'), concat('Dockerfile-wlp.template', parameters('_artifactsLocationSasToken')))]",
                     "[uri(variables('const_scriptLocation'), concat('open-liberty-application.yaml.template', parameters('_artifactsLocationSasToken')))]"
                 ],
                 "cleanupPreference": "OnSuccess",
@@ -418,25 +393,16 @@
             "type": "string"
         },
         "appImage": {
-            "condition": "[parameters('uploadAppPackage')]",
             "value": "[variables('const_appImage')]",
             "type": "string"
         },
-        "appServerXmlEncoded (Use `echo \"copied-value\" | base64 -d` to decode the text)": {
-            "condition": "[parameters('uploadAppPackage')]",
-            "value": "[reference(variables('name_deploymentScriptName')).outputs.appServerXml]",
-            "type": "string"
-        },
-        "appDockerfileEncoded (Use `echo \"copied-value\" | base64 -d` to decode the text)": {
-            "condition": "[parameters('uploadAppPackage')]",
-            "value": "[reference(variables('name_deploymentScriptName')).outputs.appDockerfile]",
-            "type": "string"
-        },
         "appDeploymentYamlEncoded (Use `echo \"copied-value\" | base64 -d` to decode the text)": {
+            "condition": "[parameters('deployApplication')]",
             "value": "[reference(variables('name_deploymentScriptName')).outputs.appDeploymentYaml]",
             "type": "string"
         },
         "appEndpoint": {
+            "condition": "[parameters('deployApplication')]",
             "value": "[reference(variables('name_deploymentScriptName')).outputs.appEndpoint]",
             "type": "string"
         }

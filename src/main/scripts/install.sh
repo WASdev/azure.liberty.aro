@@ -81,15 +81,12 @@ clusterName=$2
 projMgrUsername=$3
 projMgrPassword=$4
 scriptLocation=$5
-uploadAppPackage=$6
-appPackageUrl=$7
-export Context_Root=$8
-useOpenLibertyImage=$9
-useJava8=${10}
-export Application_Name=${11}
-export Project_Name=${12}
-export Application_Image=${13}
-export Application_Replicas=${14}
+deployApplication=$6
+sourceImagePath=$7
+export Application_Name=$8
+export Project_Name=$9
+export Application_Image=${10}
+export Application_Replicas=${11}
 logFile=deployment.log
 
 # Install utilities
@@ -154,29 +151,8 @@ registryUsername=$(oc whoami)
 registryPassword=$(oc whoami -t)
 echo "registryUsername: $registryUsername" >> $logFile
 
-# Determine base image
-baseImage=
-if [ "$useOpenLibertyImage" = True ] && [ "$useJava8" = True ]; then
-    baseImage="openliberty/open-liberty:kernel-java8-openj9-ubi"
-elif [ "$useOpenLibertyImage" = True ] && [ "$useJava8" = False ]; then
-    baseImage="openliberty/open-liberty:kernel-java11-openj9-ubi"
-elif [ "$useOpenLibertyImage" = False ] && [ "$useJava8" = True ]; then
-    baseImage="ibmcom/websphere-liberty:kernel-java8-openj9-ubi"
-else
-    baseImage="ibmcom/websphere-liberty:kernel-java11-openj9-ubi"
-fi
-echo "baseImage: $baseImage" >> $logFile
-
 # Build application image or use default base image
-if [ "$uploadAppPackage" = True ]; then
-    # Determine docker file template
-    if [ "$useOpenLibertyImage" = True ]; then
-        dockerFileTemplate=Dockerfile.template
-    else
-        dockerFileTemplate=Dockerfile-wlp.template
-    fi
-    echo "dockerFileTemplate: $dockerFileTemplate" >> $logFile
-
+if [ "$deployApplication" = True ]; then
     # Create vm to build docker image
     vmName="VM-UBUNTU-IMAGE-BUILDER-$(date +%s)"
     vmGroupName=${Application_Name}-$(date +%s)
@@ -204,53 +180,38 @@ if [ "$uploadAppPackage" = True ]; then
     --vm-name ${vmName} \
     --publisher Microsoft.Azure.Extensions \
     --version 2.0 \
-    --settings "{\"fileUris\": [\"${scriptLocation}build-image.sh\",\"${scriptLocation}server.xml.template\",\"${scriptLocation}${dockerFileTemplate}\"]}" \
-    --protected-settings "{\"commandToExecute\":\"bash build-image.sh \'${appPackageUrl}\' ${Application_Name} ${Context_Root} ${baseImage} ${dockerFileTemplate} ${registryHost} ${registryUsername} ${registryPassword} ${Project_Name} ${Application_Image}\"}"
+    --settings "{\"fileUris\": [\"${scriptLocation}import-image.sh\"]}" \
+    --protected-settings "{\"commandToExecute\":\"bash import-image.sh \'${sourceImagePath}\' ${registryHost} ${registryUsername} ${registryPassword} ${Project_Name} ${Application_Image}\"}"
     echo "VM extension execution completed and start to delete vm at $(date)." >> $logFile
 
     az group delete -n ${vmGroupName} -y
     echo "VM deleted at $(date)." >> $logFile
 
-    # Output server.xml and Dockerfile
-    export Application_Package=${Application_Name}.war
-    export Base_Image=${baseImage}
+    # Deploy open liberty application
+    envsubst < "open-liberty-application.yaml.template" > "open-liberty-application.yaml"
+    appDeploymentYaml=$(cat open-liberty-application.yaml | base64)
+    oc apply -f open-liberty-application.yaml >> $logFile
 
-    envsubst < "server.xml.template" > "server.xml"
-    envsubst < "${dockerFileTemplate}" > "Dockerfile"
-    appServerXml=$(cat server.xml | base64)
-    appDockerfile=$(cat Dockerfile | base64)
-else
-    Context_Root=/
-    Application_Image=$(echo "${baseImage/kernel/full}")
-fi
+    # Wait until the application deployment completes
+    oc project ${Project_Name}
+    wait_deployment_complete ${Application_Name} ${Project_Name} ${logFile}
 
-# Deploy open liberty application
-envsubst < "open-liberty-application.yaml.template" > "open-liberty-application.yaml"
-appDeploymentYaml=$(cat open-liberty-application.yaml | base64)
-oc apply -f open-liberty-application.yaml >> $logFile
-
-# Wait until the application deployment completes
-oc project ${Project_Name}
-wait_deployment_complete ${Application_Name} ${Project_Name} ${logFile}
-
-# Get the host of the route to visit the deployed application
-oc get route ${Application_Name}
-while [ $? -ne 0 ]
-do
-    sleep 5
+    # Get the host of the route to visit the deployed application
     oc get route ${Application_Name}
-done
-appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')
-appEndpoint=$(echo ${appEndpoint}${Context_Root})
+    while [ $? -ne 0 ]
+    do
+        sleep 5
+        oc get route ${Application_Name}
+    done
+    appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')
+fi
 
 # Write outputs to deployment script output path
 result=$(jq -n -c --arg consoleUrl $consoleUrl '{consoleUrl: $consoleUrl}')
 result=$(echo "$result" | jq --arg containerRegistryUrl "$registryHost" '{"containerRegistryUrl": $containerRegistryUrl} + .')
-if [ "$uploadAppPackage" = True ]; then
-    result=$(echo "$result" | jq --arg appServerXml "$appServerXml" '{"appServerXml": $appServerXml} + .')
-    result=$(echo "$result" | jq --arg appDockerfile "$appDockerfile" '{"appDockerfile": $appDockerfile} + .')
+if [ "$deployApplication" = True ]; then
+    result=$(echo "$result" | jq --arg appDeploymentYaml "$appDeploymentYaml" '{"appDeploymentYaml": $appDeploymentYaml} + .')
+    result=$(echo "$result" | jq --arg appEndpoint "$appEndpoint" '{"appEndpoint": $appEndpoint} + .')
 fi
-result=$(echo "$result" | jq --arg appDeploymentYaml "$appDeploymentYaml" '{"appDeploymentYaml": $appDeploymentYaml} + .')
-result=$(echo "$result" | jq --arg appEndpoint "$appEndpoint" '{"appEndpoint": $appEndpoint} + .')
 echo "Result is: $result" >> $logFile
 echo $result > $AZ_SCRIPTS_OUTPUT_PATH
