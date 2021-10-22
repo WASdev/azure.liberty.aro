@@ -312,7 +312,8 @@
                                         }
                                     ],
                                     "required": true
-                                }
+                                },
+                                "visible": "[bool(${samples.available})]"
                             },
                             {
                                 "name": "appImagePath",
@@ -324,7 +325,7 @@
                                     "regex": "^(?:(?=[^:\/]{4,253})(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\\.(?!-)[a-zA-Z0-9-]{1,63}(?<!-))*(?::[0-9]{1,5})?/)?((?![._-])(?:[a-z0-9._-]*)(?<![._-])(?:/(?![._-])[a-z0-9._-]*(?<![._-]))*)(?::(?![.-])[a-zA-Z0-9_.-]{1,128})?$",
                                     "validationMessage": "The value must be a valid image path."
                                 },
-                                "visible": "[equals(steps('Application').appImageInfo.appImageOption, '1')]"
+                                "visible": "[or(not(bool(${samples.available})), equals(steps('Application').appImageInfo.appImageOption, '1'))]"
                             }
                         ],
                         "visible": "[bool(steps('Application').deployApplication)]"
@@ -367,7 +368,7 @@
             "projMgrUsername": "[steps('Cluster').projectMgrInfo.projMgrUsername]",
             "projMgrPassword": "[steps('Cluster').projectMgrInfo.projMgrPassword]",
             "deployApplication": "[bool(steps('Application').deployApplication)]",
-            "appImagePath": "[if(equals(steps('Application').appImageInfo.appImageOption, '1'), steps('Application').appImageInfo.appImagePath, if(equals(steps('Application').appImageInfo.appImageOption, '2'), 'docker.io/openliberty/open-liberty-sample:1.0.0', if(equals(steps('Application').appImageInfo.appImageOption, '3'), 'docker.io/ibmcom/websphere-liberty-sample:1.0.0', '')))]",
+            "appImagePath": "[if(equals(steps('Application').appImageInfo.appImageOption, '2'), 'docker.io/openliberty/open-liberty-sample:1.0.0', if(equals(steps('Application').appImageInfo.appImageOption, '3'), 'docker.io/ibmcom/websphere-liberty-sample:1.0.0', steps('Application').appImageInfo.appImagePath))]",
             "appReplicas": "[int(steps('Application').appLoadBalancingInfo.appReplicas)]"
         }
     }

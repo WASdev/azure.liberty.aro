@@ -43,5 +43,6 @@
         <aro.start>acdd32ed-5fab-54b6-8d5a-097ed3dcfcf2</aro.start>
         <aro.end>d9293179-8975-5587-b29f-8f09f2832c4f</aro.end>
         <uamiHasAppAdminRole>true</uamiHasAppAdminRole>
+        <samples.available>false</samples.available>
     </properties>
 </project>
