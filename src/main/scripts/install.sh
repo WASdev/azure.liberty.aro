@@ -203,7 +203,7 @@ if [ "$deployApplication" = True ]; then
         sleep 5
         oc get route ${Application_Name}
     done
-    appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')/
+    appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')
 fi
 
 # Write outputs to deployment script output path

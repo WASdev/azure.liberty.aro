@@ -48,4 +48,4 @@
    1. Open the resource group you specified to deploy an application on the ARO 4 cluster
    1. Navigate to "Deployments > specified_deployment_name > Outputs"
    1. To visit Red Hat OpenShift Container Platform web console: copy value of property `clusterConsoleUrl` > browse it in your browser and sign in with cluster project manager credentials you specified in cluster configuration
-   1. To visit applicatoin deployed to the ARO 4 cluster: copy value of property `appEndpoint` > append context root defined in the 'server.xml' of your application if it's not equal to '/' > open it in your browser
+   1. To visit application deployed to the ARO 4 cluster: copy value of property `appEndpoint` > append context root defined in the 'server.xml' of your application if it's not equal to '/' > open it in your browser
