@@ -31,12 +31,12 @@ fi
 # Get service principal object IDs
 appSpObjectId=$(az ad sp show --id ${appClientId} --query 'objectId' -o tsv)
 if [[ $? != 0 ]]; then
-  echo "Failed to get service principal object ID for ${appClientId}."
+  echo "Failed to get service principal object ID for ${appClientId}." >&2
   exit 1
 fi
 aroRpSpObjectId=$(az ad sp list --display-name "Azure Red Hat OpenShift RP" --query '[0].objectId' -o tsv)
 if [[ $? != 0 ]]; then
-  echo "Failed to get service principal object ID for \"Azure Red Hat OpenShift RP\"."
+  echo "Failed to get service principal object ID for \"Azure Red Hat OpenShift RP\"." >&2
   exit 1
 fi
 

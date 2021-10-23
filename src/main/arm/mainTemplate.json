@@ -159,7 +159,7 @@
         "name_clusterName": "[if(parameters('createCluster'), concat('cluster', variables('const_suffix')), parameters('clusterName'))]",
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
         "name_deploymentScriptName": "[concat('aroscript', variables('const_suffix'))]",
-        "name_spDeploymentScript": "[concat('spScript', variables('const_suffix'))]"
+        "name_spDeploymentScript": "[concat('spscript', variables('const_suffix'))]"
     },
     "resources": [
         {

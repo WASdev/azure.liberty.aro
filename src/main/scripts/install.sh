@@ -101,7 +101,7 @@ tar -zxvf ~/openshift-client-linux.tar.gz -C ~/openshift
 echo 'export PATH=$PATH:~/openshift' >> ~/.bash_profile && source ~/.bash_profile
 
 # Sign in to cluster
-credentials=$(az aro list-credentials -g $clusterRGName -n $clusterName  -o json)
+credentials=$(az aro list-credentials -g $clusterRGName -n $clusterName -o json)
 kubeadminUsername=$(echo $credentials | jq -r '.kubeadminUsername')
 kubeadminPassword=$(echo $credentials | jq -r '.kubeadminPassword')
 apiServerUrl=$(az aro show -g $clusterRGName -n $clusterName --query 'apiserverProfile.url' -o tsv)
