@@ -14,6 +14,21 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+wait_login_complete() {
+    username=$1
+    password=$2
+    apiServerUrl="$3"
+    logFile=$4
+
+    oc login -u $username -p $password --server="$apiServerUrl" >> $logFile
+    while [ $? -ne 0 ]
+    do
+        echo "Login failed with ${username}, retry..." >> $logFile
+        sleep 5
+        oc login -u $username -p $password --server="$apiServerUrl" >> $logFile
+    done
+}
+
 wait_subscription_created() {
     subscriptionName=$1
     namespaceName=$2
@@ -106,7 +121,7 @@ kubeadminUsername=$(echo $credentials | jq -r '.kubeadminUsername')
 kubeadminPassword=$(echo $credentials | jq -r '.kubeadminPassword')
 apiServerUrl=$(az aro show -g $clusterRGName -n $clusterName --query 'apiserverProfile.url' -o tsv)
 consoleUrl=$(az aro show -g $clusterRGName -n $clusterName --query 'consoleProfile.url' -o tsv)
-oc login -u $kubeadminUsername -p $kubeadminPassword --server="$apiServerUrl" >> $logFile
+wait_login_complete $kubeadminUsername $kubeadminPassword "$apiServerUrl" $logFile
 
 # Install Open Liberty Operator V0.7.0
 wait_subscription_created open-liberty-certified openshift-operators ${logFile}
@@ -137,22 +152,16 @@ oc new-project $Project_Name
 oc project $Project_Name
 oc adm policy add-role-to-user admin $projMgrUsername
 
-# Get access token of the user
-oc logout
-sleep 10
-oc login -u $projMgrUsername -p $projMgrPassword --server="$apiServerUrl"
-while [ $? -ne 0 ]
-do
-    echo "Login failed, retry..." >> $logFile
-    sleep 5
-    oc login -u $projMgrUsername -p $projMgrPassword --server="$apiServerUrl"
-done
-registryUsername=$(oc whoami)
-registryPassword=$(oc whoami -t)
-echo "registryUsername: $registryUsername" >> $logFile
-
 # Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then
+    # Get access token of the user
+    oc logout
+    sleep 10
+    wait_login_complete $projMgrUsername $projMgrPassword "$apiServerUrl" $logFile
+    registryUsername=$(oc whoami)
+    registryPassword=$(oc whoami -t)
+    echo "registryUsername: $registryUsername" >> $logFile
+
     # Create vm to import docker image to the built-in container registry of the OpenShift cluster
     vmName="VM-UBUNTU-IMAGE-BUILDER-$(date +%s)"
     vmGroupName=${Application_Name}-$(date +%s)
@@ -187,7 +196,7 @@ if [ "$deployApplication" = True ]; then
     az group delete -n ${vmGroupName} -y
     echo "VM deleted at $(date)." >> $logFile
 
-    # Deploy open liberty application
+    # Deploy open liberty application and output its base64 encoded deployment yaml file content
     envsubst < "open-liberty-application.yaml.template" > "open-liberty-application.yaml"
     appDeploymentYaml=$(cat open-liberty-application.yaml | base64)
     oc apply -f open-liberty-application.yaml >> $logFile
@@ -204,13 +213,16 @@ if [ "$deployApplication" = True ]; then
         oc get route ${Application_Name}
     done
     appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')
+else
+    # Output base64 encoded deployment template yaml file content
+    appDeploymentYaml=$(cat open-liberty-application.yaml.template | sed -e "s/\${Project_Name}/${Project_Name}/g" -e "s/\${Application_Replicas}/${Application_Replicas}/g" | base64)
 fi
 
 # Write outputs to deployment script output path
 result=$(jq -n -c --arg consoleUrl $consoleUrl '{consoleUrl: $consoleUrl}')
 result=$(echo "$result" | jq --arg containerRegistryUrl "$registryHost" '{"containerRegistryUrl": $containerRegistryUrl} + .')
+result=$(echo "$result" | jq --arg appDeploymentYaml "$appDeploymentYaml" '{"appDeploymentYaml": $appDeploymentYaml} + .')
 if [ "$deployApplication" = True ]; then
-    result=$(echo "$result" | jq --arg appDeploymentYaml "$appDeploymentYaml" '{"appDeploymentYaml": $appDeploymentYaml} + .')
     result=$(echo "$result" | jq --arg appEndpoint "$appEndpoint" '{"appEndpoint": $appEndpoint} + .')
 fi
 echo "Result is: $result" >> $logFile
