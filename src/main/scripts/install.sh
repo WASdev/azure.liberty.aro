@@ -14,16 +14,25 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+MAX_RETRIES=99
+
 wait_login_complete() {
     username=$1
     password=$2
     apiServerUrl="$3"
     logFile=$4
 
+    cnt=0
     oc login -u $username -p $password --server="$apiServerUrl" >> $logFile
     while [ $? -ne 0 ]
     do
-        echo "Login failed with ${username}, retry..." >> $logFile
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Login failed with ${username}, retry ${cnt} time(s)..." >> $logFile
         sleep 5
         oc login -u $username -p $password --server="$apiServerUrl" >> $logFile
     done
@@ -34,26 +43,47 @@ wait_subscription_created() {
     namespaceName=$2
     logFile=$3
 
+    cnt=0
     oc get packagemanifests -n openshift-marketplace | grep -q ${subscriptionName}
     while [ $? -ne 0 ]
     do
-        echo "Wait until the Operator ${subscriptionName} is available to the cluster from OperatorHub..." >> $logFile
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Unable to get the operator package manifest ${subscriptionName} from OperatorHub, retry ${cnt} time(s)..." >> $logFile
         sleep 5
         oc get packagemanifests -n openshift-marketplace | grep -q ${subscriptionName}
     done
 
+    cnt=0
     oc apply -f open-liberty-operator-subscription.yaml >> $logFile
     while [ $? -ne 0 ]
     do
-        echo "Failed to create subscription ${subscriptionName}, retry..." >> $logFile
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Failed to create the operator subscription ${subscriptionName}, retry ${cnt} time(s)..." >> $logFile
         sleep 5
         oc apply -f open-liberty-operator-subscription.yaml >> $logFile
     done
 
+    cnt=0
     oc get subscription ${subscriptionName} -n ${namespaceName}
     while [ $? -ne 0 ]
     do
-        echo "Wait until the subscription ${subscriptionName} is created..." >> $logFile
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Unable to get the operator subscription ${subscriptionName}, retry ${cnt} time(s)..." >> $logFile
         sleep 5
         oc get subscription ${subscriptionName} -n ${namespaceName}
     done
@@ -65,16 +95,31 @@ wait_deployment_complete() {
     namespaceName=$2
     logFile=$3
 
+    cnt=0
     oc get deployment ${deploymentName} -n ${namespaceName}
     while [ $? -ne 0 ]
     do
-        echo "Wait until the deployment ${deploymentName} created..." >> $logFile
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Unable to get the deployment ${deploymentName}, retry ${cnt} time(s)..." >> $logFile
         sleep 5
         oc get deployment ${deploymentName} -n ${namespaceName}
     done
+
+    cnt=0
     read -r -a replicas <<< `oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.spec.replicas}{" "}{.status.readyReplicas}{" "}{.status.availableReplicas}{" "}{.status.updatedReplicas}{"\n"}'`
     while [[ ${#replicas[@]} -ne 4 || ${replicas[0]} != ${replicas[1]} || ${replicas[1]} != ${replicas[2]} || ${replicas[2]} != ${replicas[3]} ]]
     do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
         # Delete pods in ImagePullBackOff status
         podIds=`oc get pod -n ${namespaceName} | grep ImagePullBackOff | awk '{print $1}'`
         read -r -a podIds <<< `echo $podIds`
@@ -85,7 +130,7 @@ wait_deployment_complete() {
         done
 
         sleep 5
-        echo "Wait until the deployment ${deploymentName} completes..." >> $logFile
+        echo "Wait until the deployment ${deploymentName} completes, retry ${cnt} time(s)..." >> $logFile
         read -r -a replicas <<< `oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.spec.replicas}{" "}{.status.readyReplicas}{" "}{.status.availableReplicas}{" "}{.status.updatedReplicas}{"\n"}'`
     done
     echo "Deployment ${deploymentName} completed." >> $logFile
@@ -122,10 +167,22 @@ kubeadminPassword=$(echo $credentials | jq -r '.kubeadminPassword')
 apiServerUrl=$(az aro show -g $clusterRGName -n $clusterName --query 'apiserverProfile.url' -o tsv)
 consoleUrl=$(az aro show -g $clusterRGName -n $clusterName --query 'consoleProfile.url' -o tsv)
 wait_login_complete $kubeadminUsername $kubeadminPassword "$apiServerUrl" $logFile
+if [[ $? -ne 0 ]]; then
+  echo "Failed to sign into the cluster with ${kubeadminUsername}." >&2
+  exit 1
+fi
 
 # Install Open Liberty Operator V0.7.0
 wait_subscription_created open-liberty-certified openshift-operators ${logFile}
+if [[ $? -ne 0 ]]; then
+  echo "Failed to install the Open Liberty Operator from the OperatorHub." >&2
+  exit 1
+fi
 wait_deployment_complete open-liberty-operator openshift-operators ${logFile}
+if [[ $? -ne 0 ]]; then
+  echo "The Open Liberty Operator is not available." >&2
+  exit 1
+fi
 
 # Configure an HTPasswd identity provider
 oc get secret htpass-secret -n openshift-config
@@ -158,6 +215,11 @@ if [ "$deployApplication" = True ]; then
     oc logout
     sleep 10
     wait_login_complete $projMgrUsername $projMgrPassword "$apiServerUrl" $logFile
+    if [[ $? -ne 0 ]]; then
+        echo "Failed to sign into the cluster with ${projMgrUsername}." >&2
+        exit 1
+    fi
+
     registryUsername=$(oc whoami)
     registryPassword=$(oc whoami -t)
     echo "registryUsername: $registryUsername" >> $logFile
@@ -204,6 +266,10 @@ if [ "$deployApplication" = True ]; then
     # Wait until the application deployment completes
     oc project ${Project_Name}
     wait_deployment_complete ${Application_Name} ${Project_Name} ${logFile}
+    if [[ $? != 0 ]]; then
+        echo "The OpenLibertyApplication ${Application_Name} is not available." >&2
+        exit 1
+    fi
 
     # Get the host of the route to visit the deployed application
     oc get route ${Application_Name}
