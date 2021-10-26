@@ -20,4 +20,5 @@ metadata:
 spec:
   replicas: ${Application_Replicas}
   applicationImage: ${Application_Image}
+  pullPolicy: Always
   expose: true
