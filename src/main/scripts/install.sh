@@ -32,7 +32,7 @@ wait_login_complete() {
         fi
         cnt=$((cnt+1))
 
-        echo "Login failed with ${username}, retry ${cnt} time(s)..." >> $logFile
+        echo "Login failed with ${username}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc login -u $username -p $password --server="$apiServerUrl" >> $logFile
     done
@@ -53,7 +53,7 @@ wait_subscription_created() {
         fi
         cnt=$((cnt+1))
 
-        echo "Unable to get the operator package manifest ${subscriptionName} from OperatorHub, retry ${cnt} time(s)..." >> $logFile
+        echo "Unable to get the operator package manifest ${subscriptionName} from OperatorHub, retry ${cnt}  of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc get packagemanifests -n openshift-marketplace | grep -q ${subscriptionName}
     done
@@ -68,7 +68,7 @@ wait_subscription_created() {
         fi
         cnt=$((cnt+1))
 
-        echo "Failed to create the operator subscription ${subscriptionName}, retry ${cnt} time(s)..." >> $logFile
+        echo "Failed to create the operator subscription ${subscriptionName}, retry ${cnt}  of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc apply -f open-liberty-operator-subscription.yaml >> $logFile
     done
@@ -83,7 +83,7 @@ wait_subscription_created() {
         fi
         cnt=$((cnt+1))
 
-        echo "Unable to get the operator subscription ${subscriptionName}, retry ${cnt} time(s)..." >> $logFile
+        echo "Unable to get the operator subscription ${subscriptionName}, retry ${cnt}  of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc get subscription ${subscriptionName} -n ${namespaceName}
     done
@@ -105,7 +105,7 @@ wait_deployment_complete() {
         fi
         cnt=$((cnt+1))
 
-        echo "Unable to get the deployment ${deploymentName}, retry ${cnt} time(s)..." >> $logFile
+        echo "Unable to get the deployment ${deploymentName}, retry ${cnt}  of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc get deployment ${deploymentName} -n ${namespaceName}
     done
@@ -130,7 +130,7 @@ wait_deployment_complete() {
         done
 
         sleep 5
-        echo "Wait until the deployment ${deploymentName} completes, retry ${cnt} time(s)..." >> $logFile
+        echo "Wait until the deployment ${deploymentName} completes, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         read -r -a replicas <<< `oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.spec.replicas}{" "}{.status.readyReplicas}{" "}{.status.availableReplicas}{" "}{.status.updatedReplicas}{"\n"}'`
     done
     echo "Deployment ${deploymentName} completed." >> $logFile
