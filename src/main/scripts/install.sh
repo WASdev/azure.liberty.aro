@@ -53,7 +53,7 @@ wait_subscription_created() {
         fi
         cnt=$((cnt+1))
 
-        echo "Unable to get the operator package manifest ${subscriptionName} from OperatorHub, retry ${cnt}  of ${MAX_RETRIES}..." >> $logFile
+        echo "Unable to get the operator package manifest ${subscriptionName} from OperatorHub, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc get packagemanifests -n openshift-marketplace | grep -q ${subscriptionName}
     done
@@ -68,7 +68,7 @@ wait_subscription_created() {
         fi
         cnt=$((cnt+1))
 
-        echo "Failed to create the operator subscription ${subscriptionName}, retry ${cnt}  of ${MAX_RETRIES}..." >> $logFile
+        echo "Failed to create the operator subscription ${subscriptionName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc apply -f open-liberty-operator-subscription.yaml >> $logFile
     done
@@ -83,7 +83,7 @@ wait_subscription_created() {
         fi
         cnt=$((cnt+1))
 
-        echo "Unable to get the operator subscription ${subscriptionName}, retry ${cnt}  of ${MAX_RETRIES}..." >> $logFile
+        echo "Unable to get the operator subscription ${subscriptionName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc get subscription ${subscriptionName} -n ${namespaceName}
     done
@@ -105,7 +105,7 @@ wait_deployment_complete() {
         fi
         cnt=$((cnt+1))
 
-        echo "Unable to get the deployment ${deploymentName}, retry ${cnt}  of ${MAX_RETRIES}..." >> $logFile
+        echo "Unable to get the deployment ${deploymentName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc get deployment ${deploymentName} -n ${namespaceName}
     done
@@ -134,6 +134,27 @@ wait_deployment_complete() {
         read -r -a replicas <<< `oc get deployment ${deploymentName} -n ${namespaceName} -o=jsonpath='{.spec.replicas}{" "}{.status.readyReplicas}{" "}{.status.availableReplicas}{" "}{.status.updatedReplicas}{"\n"}'`
     done
     echo "Deployment ${deploymentName} completed." >> $logFile
+}
+
+wait_route_available() {
+    routeName=$1
+    namespaceName=$2
+    logFile=$3
+
+    cnt=0
+    oc get route ${routeName} -n ${namespaceName}
+    while [ $? -ne 0 ]
+    do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Unable to get the route ${routeName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        sleep 5
+        oc get route ${routeName} -n ${namespaceName}
+    done
 }
 
 clusterRGName=$1
@@ -198,16 +219,21 @@ oc apply -f htpasswd-cr.yaml >> $logFile
 
 # Configure built-in container registry
 oc project openshift-image-registry
-oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
-oc policy add-role-to-user registry-viewer $projMgrUsername
-oc policy add-role-to-user registry-editor $projMgrUsername
+oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge >> $logFile
+oc policy add-role-to-user registry-viewer $projMgrUsername >> $logFile
+oc policy add-role-to-user registry-editor $projMgrUsername >> $logFile
+wait_route_available default-route openshift-image-registry $logFile
+if [[ $? -ne 0 ]]; then
+  echo "The route default-route is not available." >&2
+  exit 1
+fi
 registryHost=$(oc get route default-route --template='{{ .spec.host }}')
 echo "registryHost: $registryHost" >> $logFile
 
 # Create a new project and grant its admin role to the user
 oc new-project $Project_Name
 oc project $Project_Name
-oc adm policy add-role-to-user admin $projMgrUsername
+oc adm policy add-role-to-user admin $projMgrUsername >> $logFile
 
 # Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then
@@ -272,12 +298,11 @@ if [ "$deployApplication" = True ]; then
     fi
 
     # Get the host of the route to visit the deployed application
-    oc get route ${Application_Name}
-    while [ $? -ne 0 ]
-    do
-        sleep 5
-        oc get route ${Application_Name}
-    done
+    wait_route_available ${Application_Name} ${Project_Name} $logFile
+    if [[ $? -ne 0 ]]; then
+        echo "The route ${Application_Name} is not available." >&2
+        exit 1
+    fi
     appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')
 else
     # Output base64 encoded deployment template yaml file content
