@@ -37,6 +37,11 @@ if [ ${roleLength} -lt 1 ]; then
     exit 1
 fi
 
+# Check if client application needs to be created
+if [[ ${CREATE_AAD_CLIENT} != "True" ]]; then
+    exit 0
+fi
+
 # Create client application and service principal
 app=$(az ad app create --display-name ${AAD_CLIENT_NAME} --password ${AAD_CLIENT_SECRET})
 if [[ $? != 0 ]]; then
