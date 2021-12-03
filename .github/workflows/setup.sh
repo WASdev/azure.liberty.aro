@@ -200,3 +200,6 @@ if [ $USE_GITHUB_CLI == false ]; then
   msg "${NOFORMAT}========================================================================"
 fi
 msg "${GREEN}Secrets configured"
+
+msg "${RED}IMPORTANT: You must manually assign the Azure AD role ${GREEN}Application Administrator ${RED}"
+msg "${RED}IMPORTANT: to ${USER_ASSIGNED_MANAGED_IDENTITY_NAME} before attempting a deployment."

@@ -101,3 +101,4 @@ if [ $USE_GITHUB_CLI == false ]; then
   msg "${NOFORMAT}========================================================================"
 fi
 msg "${GREEN}Secrets removed"
+
