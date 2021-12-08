@@ -284,6 +284,13 @@ if [ "$deployApplication" = True ]; then
     az group delete -n ${vmGroupName} -y
     echo "VM deleted at $(date)." >> $logFile
 
+    # Check whether the source image is successfully imported to the built-in container registry
+    oc get imagestreamtag ${Application_Image} --namespace ${Project_Name}
+    if [[ $? != 0 ]]; then
+        echo "Unable to import source image ${sourceImagePath} to the built-in container registry of the OpenShift cluster. Please check if it's a public image and the source image path is correct" >&2
+        exit 1
+    fi
+
     # Deploy open liberty application and output its base64 encoded deployment yaml file content
     envsubst < "open-liberty-application.yaml.template" > "open-liberty-application.yaml"
     appDeploymentYaml=$(cat open-liberty-application.yaml | base64)

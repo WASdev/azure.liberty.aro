@@ -316,9 +316,19 @@
                                 "visible": "[bool(${samples.available})]"
                             },
                             {
+                                "name": "imagePathInfo",
+                                "type": "Microsoft.Common.InfoBox",
+                                "options": {
+                                    "icon": "Info",
+                                    "text": "Please provide a public image which is accessible without credentials."
+                                },
+                                "visible": "[or(not(bool(${samples.available})), equals(steps('Application').appImageInfo.appImageOption, '1'))]"
+                            },
+                            {
                                 "name": "appImagePath",
                                 "type": "Microsoft.Common.TextBox",
                                 "label": "Application docker image path",
+                                "placeholder": "Example: docker.io/openliberty/open-liberty:full-java11-openj9-ubi",
                                 "toolTip": "Specify the docker image path of your application.",
                                 "constraints": {
                                     "required": true,
