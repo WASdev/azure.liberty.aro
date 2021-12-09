@@ -22,19 +22,19 @@ appProjName=$5
 appImage=$6
 
 # Install docker and start docker daemon
-apt-get -q update
-apt-get -y -q install apt-transport-https
+apt-get -q update >/dev/null 2>&1
+apt-get -y -q install apt-transport-https >/dev/null 2>&1
 curl -m 120 -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
-apt-get -q update
-apt-get -y -q install docker-ce docker-ce-cli containerd.io
+apt-get -q update >/dev/null 2>&1
+apt-get -y -q install docker-ce docker-ce-cli containerd.io >/dev/null 2>&1
 systemctl start docker
 
 # Pull and tag image
-docker pull ${sourceImagePath}
+docker pull ${sourceImagePath} 1>/dev/null
 docker tag ${sourceImagePath} ${registryHost}/${appProjName}/${appImage}
 
 # Sign in to the built-in container image registry and push image
-docker login -u ${registryUsername} -p ${registryPassword} ${registryHost}
-docker push ${registryHost}/${appProjName}/${appImage}
+docker login -u ${registryUsername} -p ${registryPassword} ${registryHost} >/dev/null 2>&1
+docker push ${registryHost}/${appProjName}/${appImage} 1>/dev/null

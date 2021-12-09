@@ -23,7 +23,7 @@ wait_login_complete() {
     logFile=$4
 
     cnt=0
-    oc login -u $username -p $password --server="$apiServerUrl" >> $logFile
+    oc login -u $username -p $password --server="$apiServerUrl" >> $logFile 2>&1
     while [ $? -ne 0 ]
     do
         if [ $cnt -eq $MAX_RETRIES ]; then
@@ -34,7 +34,7 @@ wait_login_complete() {
 
         echo "Login failed with ${username}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
-        oc login -u $username -p $password --server="$apiServerUrl" >> $logFile
+        oc login -u $username -p $password --server="$apiServerUrl" >> $logFile 2>&1
     done
 }
 
@@ -74,7 +74,7 @@ wait_subscription_created() {
     done
 
     cnt=0
-    oc get subscription ${subscriptionName} -n ${namespaceName}
+    oc get subscription ${subscriptionName} -n ${namespaceName} 2>/dev/null
     while [ $? -ne 0 ]
     do
         if [ $cnt -eq $MAX_RETRIES ]; then
@@ -85,7 +85,7 @@ wait_subscription_created() {
 
         echo "Unable to get the operator subscription ${subscriptionName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
-        oc get subscription ${subscriptionName} -n ${namespaceName}
+        oc get subscription ${subscriptionName} -n ${namespaceName} 2>/dev/null
     done
     echo "Subscription ${subscriptionName} created." >> $logFile
 }
@@ -96,7 +96,7 @@ wait_deployment_complete() {
     logFile=$3
 
     cnt=0
-    oc get deployment ${deploymentName} -n ${namespaceName}
+    oc get deployment ${deploymentName} -n ${namespaceName} 2>/dev/null
     while [ $? -ne 0 ]
     do
         if [ $cnt -eq $MAX_RETRIES ]; then
@@ -107,7 +107,7 @@ wait_deployment_complete() {
 
         echo "Unable to get the deployment ${deploymentName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
-        oc get deployment ${deploymentName} -n ${namespaceName}
+        oc get deployment ${deploymentName} -n ${namespaceName} 2>/dev/null
     done
 
     cnt=0
@@ -142,7 +142,7 @@ wait_route_available() {
     logFile=$3
 
     cnt=0
-    oc get route ${routeName} -n ${namespaceName}
+    oc get route ${routeName} -n ${namespaceName} 2>/dev/null
     while [ $? -ne 0 ]
     do
         if [ $cnt -eq $MAX_RETRIES ]; then
@@ -153,7 +153,7 @@ wait_route_available() {
 
         echo "Unable to get the route ${routeName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
-        oc get route ${routeName} -n ${namespaceName}
+        oc get route ${routeName} -n ${namespaceName} 2>/dev/null
     done
 }
 
@@ -176,7 +176,7 @@ apk add gettext
 apk add apache2-utils
 
 # Install the OpenShift CLI
-wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz -P ~
+wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz -q -P ~
 mkdir ~/openshift
 tar -zxvf ~/openshift-client-linux.tar.gz -C ~/openshift
 echo 'export PATH=$PATH:~/openshift' >> ~/.bash_profile && source ~/.bash_profile
@@ -206,22 +206,22 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Configure an HTPasswd identity provider
-oc get secret htpass-secret -n openshift-config
+oc get secret htpass-secret -n openshift-config 2>/dev/null
 if [ $? -ne 0 ]; then
-    htpasswd -c -B -b users.htpasswd $projMgrUsername $projMgrPassword
+    htpasswd -c -B -b users.htpasswd $projMgrUsername $projMgrPassword >> $logFile 2>&1
     oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd -n openshift-config >> $logFile
 else
     oc get secret htpass-secret -ojsonpath={.data.htpasswd} -n openshift-config | base64 -d > users.htpasswd
-    htpasswd -bB users.htpasswd $projMgrUsername $projMgrPassword
+    htpasswd -bB users.htpasswd $projMgrUsername $projMgrPassword >> $logFile 2>&1
     oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd --dry-run=client -o yaml -n openshift-config | oc replace -f - >> $logFile
 fi
-oc apply -f htpasswd-cr.yaml >> $logFile
+oc apply -f htpasswd-cr.yaml >> $logFile 2>&1
 
 # Configure built-in container registry
 oc project openshift-image-registry
 oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge >> $logFile
-oc policy add-role-to-user registry-viewer $projMgrUsername >> $logFile
-oc policy add-role-to-user registry-editor $projMgrUsername >> $logFile
+oc policy add-role-to-user registry-viewer $projMgrUsername >> $logFile 2>&1
+oc policy add-role-to-user registry-editor $projMgrUsername >> $logFile 2>&1
 wait_route_available default-route openshift-image-registry $logFile
 if [[ $? -ne 0 ]]; then
   echo "The route default-route is not available." >&2
@@ -233,7 +233,7 @@ echo "registryHost: $registryHost" >> $logFile
 # Create a new project and grant its admin role to the user
 oc new-project $Project_Name
 oc project $Project_Name
-oc adm policy add-role-to-user admin $projMgrUsername >> $logFile
+oc adm policy add-role-to-user admin $projMgrUsername >> $logFile 2>&1
 
 # Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then
@@ -268,7 +268,7 @@ if [ "$deployApplication" = True ]; then
     --enable-agent true \
     --vnet-name ${vmName}VNET \
     --enable-auto-update false \
-    --tags SkipASMAzSecPack=true SkipNRMSCorp=true SkipNRMSDatabricks=true SkipNRMSDB=true SkipNRMSHigh=true SkipNRMSMedium=true SkipNRMSRDPSSH=true SkipNRMSSAW=true SkipNRMSMgmt=true --verbose
+    --tags SkipASMAzSecPack=true SkipNRMSCorp=true SkipNRMSDatabricks=true SkipNRMSDB=true SkipNRMSHigh=true SkipNRMSMedium=true SkipNRMSRDPSSH=true SkipNRMSSAW=true SkipNRMSMgmt=true 2>/dev/null
     echo "VM created and vm extension execution started at $(date)." >> $logFile
 
     az vm extension set --name CustomScript \
