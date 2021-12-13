@@ -191,7 +191,6 @@
             }
         },
         {
-            "condition": "[and(parameters('createCluster'), or(empty(parameters('aadClientId')), empty(parameters('aadClientSecret')), empty(parameters('aadObjectId')), empty(parameters('rpObjectId'))))]",
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "${azure.apiVersion.deploymentScript}",
             "name": "[variables('name_spDeploymentScript')]",
@@ -201,6 +200,10 @@
             "properties": {
                 "AzCliVersion": "2.15.0",
                 "environmentVariables": [
+                    {
+                        "name": "CREATE_AAD_CLIENT",
+                        "value": "[and(parameters('createCluster'), or(empty(parameters('aadClientId')), empty(parameters('aadClientSecret')), empty(parameters('aadObjectId')), empty(parameters('rpObjectId'))))]"
+                    },
                     {
                         "name": "AAD_CLIENT_NAME",
                         "value": "[variables('const_aadClientName')]"
