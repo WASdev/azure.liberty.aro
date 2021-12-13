@@ -327,13 +327,13 @@
                             {
                                 "name": "appImagePath",
                                 "type": "Microsoft.Common.TextBox",
-                                "label": "Application docker image path",
+                                "label": "Application container image path",
                                 "placeholder": "Example: docker.io/openliberty/open-liberty:full-java11-openj9-ubi",
-                                "toolTip": "Specify the docker image path of your application.",
+                                "toolTip": "Specify the container image path of your application.",
                                 "constraints": {
                                     "required": true,
                                     "regex": "^(?:(?=[^:\/]{4,253})(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\\.(?!-)[a-zA-Z0-9-]{1,63}(?<!-))*(?::[0-9]{1,5})?/)?((?![._-])(?:[a-z0-9._-]*)(?<![._-])(?:/(?![._-])[a-z0-9._-]*(?<![._-]))*)(?::(?![.-])[a-zA-Z0-9_.-]{1,128})?$",
-                                    "validationMessage": "The value must be a valid docker image path. For example, docker.io/openliberty/open-liberty:full-java11-openj9-ubi"
+                                    "validationMessage": "The value must be a valid container image path. For example, docker.io/openliberty/open-liberty:full-java11-openj9-ubi"
                                 },
                                 "visible": "[or(not(bool(${samples.available})), equals(steps('Application').appImageInfo.appImageOption, '1'))]"
                             }

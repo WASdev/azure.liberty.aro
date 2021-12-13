@@ -250,7 +250,7 @@ if [ "$deployApplication" = True ]; then
     registryPassword=$(oc whoami -t)
     echo "registryUsername: $registryUsername" >> $logFile
 
-    # Create vm to import docker image to the built-in container registry of the OpenShift cluster
+    # Create vm to import container image to the built-in container registry of the OpenShift cluster
     vmName="VM-UBUNTU-IMAGE-BUILDER-$(date +%s)"
     vmGroupName=${Application_Name}-$(date +%s)
     vmRegion=$(az aro show -g $clusterRGName -n $clusterName --query 'location' -o tsv)
