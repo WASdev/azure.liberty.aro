@@ -193,7 +193,7 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# Install Open Liberty Operator V0.7.0
+# Install Open Liberty Operator
 wait_subscription_created open-liberty-certified openshift-operators ${logFile}
 if [[ $? -ne 0 ]]; then
   echo "Failed to install the Open Liberty Operator from the OperatorHub." >&2
