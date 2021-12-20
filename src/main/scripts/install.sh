@@ -199,7 +199,7 @@ if [[ $? -ne 0 ]]; then
   echo "Failed to install the Open Liberty Operator from the OperatorHub." >&2
   exit 1
 fi
-wait_deployment_complete open-liberty-operator openshift-operators ${logFile}
+wait_deployment_complete olo-controller-manager openshift-operators ${logFile}
 if [[ $? -ne 0 ]]; then
   echo "The Open Liberty Operator is not available." >&2
   exit 1
