@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-apiVersion: openliberty.io/v1beta1
+apiVersion: apps.openliberty.io/v1beta2
 kind: OpenLibertyApplication
 metadata:
   name: ${Application_Name}
