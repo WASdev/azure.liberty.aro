@@ -38,7 +38,7 @@
                         "type": "Microsoft.Common.TextBlock",
                         "visible": true,
                         "options": {
-                            "text": "If you encounter problems during deployment of Liberty on Azure, please report them here.",
+                            "text": "If you encounter problems during deployment of Liberty on Azure, open an issue.",
                             "link": {
                                 "label": "Issue tracker",
                                 "uri": "https://aka.ms/azure-liberty-aro-issues?version=${project.version}"
@@ -50,7 +50,7 @@
                         "type": "Microsoft.Common.TextBlock",
                         "visible": true,
                         "options": {
-                            "text": "If you have problems with the offer after successful deployment, and you have purchased licenses that entitle you to IBM support for Liberty, please raise a ticket.",
+                            "text": "If you have problems with the offer after successful deployment, and you have purchased licenses that entitle you to IBM support for Liberty, open an issue.",
                             "link": {
                                 "label": "IBM support",
                                 "uri": "https://www.ibm.com/mysupport/"
