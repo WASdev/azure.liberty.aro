@@ -303,17 +303,12 @@
                                             "value": "1"
                                         },
                                         {
-                                            "label": "An Open Liberty sample application image: docker.io/openliberty/open-liberty-sample:1.0.0",
+                                            "label": "The Open Liberty sample image: icr.io/appcafe/open-liberty/samples/getting-started",
                                             "value": "2"
-                                        },
-                                        {
-                                            "label": "A WebSphere Liberty sample application image: docker.io/ibmcom/websphere-liberty-sample:1.0.0",
-                                            "value": "3"
                                         }
                                     ],
                                     "required": true
-                                },
-                                "visible": "[bool(${samples.available})]"
+                                }
                             },
                             {
                                 "name": "imagePathInfo",
@@ -322,7 +317,7 @@
                                     "icon": "Info",
                                     "text": "Please provide a public image which is accessible without credentials."
                                 },
-                                "visible": "[or(not(bool(${samples.available})), equals(steps('Application').appImageInfo.appImageOption, '1'))]"
+                                "visible": "[equals(steps('Application').appImageInfo.appImageOption, '1')]"
                             },
                             {
                                 "name": "appImagePath",
@@ -335,7 +330,7 @@
                                     "regex": "^(?:(?=[^:\/]{4,253})(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\\.(?!-)[a-zA-Z0-9-]{1,63}(?<!-))*(?::[0-9]{1,5})?/)?((?![._-])(?:[a-z0-9._-]*)(?<![._-])(?:/(?![._-])[a-z0-9._-]*(?<![._-]))*)(?::(?![.-])[a-zA-Z0-9_.-]{1,128})?$",
                                     "validationMessage": "The value must be a valid container image path. For example, docker.io/openliberty/open-liberty:full-java11-openj9-ubi"
                                 },
-                                "visible": "[or(not(bool(${samples.available})), equals(steps('Application').appImageInfo.appImageOption, '1'))]"
+                                "visible": "[equals(steps('Application').appImageInfo.appImageOption, '1')]"
                             }
                         ],
                         "visible": "[bool(steps('Application').deployApplication)]"
@@ -378,7 +373,7 @@
             "projMgrUsername": "[steps('Cluster').projectMgrInfo.projMgrUsername]",
             "projMgrPassword": "[steps('Cluster').projectMgrInfo.projMgrPassword]",
             "deployApplication": "[bool(steps('Application').deployApplication)]",
-            "appImagePath": "[if(equals(steps('Application').appImageInfo.appImageOption, '2'), 'docker.io/openliberty/open-liberty-sample:1.0.0', if(equals(steps('Application').appImageInfo.appImageOption, '3'), 'docker.io/ibmcom/websphere-liberty-sample:1.0.0', steps('Application').appImageInfo.appImagePath))]",
+            "appImagePath": "[if(equals(steps('Application').appImageInfo.appImageOption, '2'), 'icr.io/appcafe/open-liberty/samples/getting-started', if(equals(steps('Application').appImageInfo.appImageOption, '3'), 'docker.io/ibmcom/websphere-liberty-sample:1.0.0', steps('Application').appImageInfo.appImagePath))]",
             "appReplicas": "[int(steps('Application').appLoadBalancingInfo.appReplicas)]"
         }
     }
