@@ -250,39 +250,8 @@ if [ "$deployApplication" = True ]; then
     registryPassword=$(oc whoami -t)
     echo "registryUsername: $registryUsername" >> $logFile
 
-    # Create vm to import container image to the built-in container registry of the OpenShift cluster
-    vmName="VM-UBUNTU-IMAGE-BUILDER-$(date +%s)"
-    vmGroupName=${Application_Name}-$(date +%s)
-    vmRegion=$(az aro show -g $clusterRGName -n $clusterName --query 'location' -o tsv)
-
-    az group create -n ${vmGroupName} -l ${vmRegion}
-    echo "VM group created at $(date)." >> $logFile
-
-    az vm create \
-    --resource-group ${vmGroupName} \
-    --name ${vmName} \
-    --image "Canonical:UbuntuServer:18.04-LTS:latest" \
-    --admin-username azureuser \
-    --generate-ssh-keys \
-    --nsg-rule NONE \
-    --enable-agent true \
-    --vnet-name ${vmName}VNET \
-    --enable-auto-update false \
-    --tags SkipASMAzSecPack=true SkipNRMSCorp=true SkipNRMSDatabricks=true SkipNRMSDB=true SkipNRMSHigh=true SkipNRMSMedium=true SkipNRMSRDPSSH=true SkipNRMSSAW=true SkipNRMSMgmt=true 2>/dev/null
-    echo "VM created and vm extension execution started at $(date)." >> $logFile
-
-    az vm extension set --name CustomScript \
-    --extension-instance-name liberty-aro-image-script \
-    --resource-group ${vmGroupName} \
-    --vm-name ${vmName} \
-    --publisher Microsoft.Azure.Extensions \
-    --version 2.0 \
-    --settings "{\"fileUris\": [\"${scriptLocation}import-image.sh\"]}" \
-    --protected-settings "{\"commandToExecute\":\"bash import-image.sh \'${sourceImagePath}\' ${registryHost} ${registryUsername} ${registryPassword} ${Project_Name} ${Application_Image}\"}"
-    echo "VM extension execution completed and start to delete vm at $(date)." >> $logFile
-
-    az group delete -n ${vmGroupName} -y
-    echo "VM deleted at $(date)." >> $logFile
+    # Import container image to the built-in container registry of the OpenShift cluster
+    oc import-image ${Application_Image} --from=${sourceImagePath} --reference-policy=local --confirm
 
     # Check whether the source image is successfully imported to the built-in container registry
     oc get imagestreamtag ${Application_Image} --namespace ${Project_Name}
