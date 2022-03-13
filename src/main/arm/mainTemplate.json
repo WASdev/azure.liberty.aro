@@ -402,10 +402,6 @@
             "value": "[reference(variables('name_deploymentScriptName')).outputs.consoleUrl]",
             "type": "string"
         },
-        "containerRegistryUrl": {
-            "value": "[reference(variables('name_deploymentScriptName')).outputs.containerRegistryUrl]",
-            "type": "string"
-        },
         "appProjName": {
             "value": "[variables('const_appProjName')]",
             "type": "string"
@@ -457,21 +453,16 @@
             "value": "[concat('oc login $(', variables('const_cmdToGetApiServer'), ') -u <projMgrUsername> -p <projMgrPwd>')]",
             "type": "string"
         },
-        "cmdToLoginInRegistry (Please execute command in `cmdToLoginWithProjManager` before executing this one)": {
-            "value": "[concat('docker login -u $(oc whoami) -p $(oc whoami -t) ', reference(variables('name_deploymentScriptName')).outputs.containerRegistryUrl)]",
+        "cmdToCreateImageStream (Please replace '<image-name>' with yours and execute command in `cmdToLoginWithProjManager` before executing this one)": {
+            "value": "[concat('oc create imagestream <image-name> -n ', variables('const_appProjName'))]",
             "type": "string"
         },
-        "cmdToPullImageFromRegistry (Please execute command in `cmdToLoginInRegistry` before executing this one)": {
-            "condition": "[parameters('deployApplication')]",
-            "value": "[concat('docker pull ', reference(variables('name_deploymentScriptName')).outputs.containerRegistryUrl, '/', variables('const_appProjName'), '/', variables('const_appImage'))]",
+        "cmdToCreateBuildConfig (Please replace '<build-config-name>' and '<image-name>:<tag>' with yours, and execute command in `cmdToCreateImageStream` before executing this one)": {
+            "value": "[concat('oc new-build --name <build-config-name> --binary --strategy docker --to <image-name>:<tag> -n ', variables('const_appProjName'))]",
             "type": "string"
         },
-        "cmdToTagImageWithRegistry (Please replace '<source-image-path>' and '<target-image-name:tag>' with yours)": {
-            "value": "[concat('docker tag <source-image-path> ', reference(variables('name_deploymentScriptName')).outputs.containerRegistryUrl, '/', variables('const_appProjName'), '/<target-image-name:tag>')]",
-            "type": "string"
-        },
-        "cmdToPushImageToRegistry (Please execute commands in `cmdToLoginInRegistry` and `cmdToTagImageWithRegistry` before executing this one)": {
-            "value": "[concat('docker push ', reference(variables('name_deploymentScriptName')).outputs.containerRegistryUrl, '/', variables('const_appProjName'), '/<target-image-name:tag>')]",
+        "cmdToStartBuild (Please replace '<build-config-name>' and '<path-to-dockerfile-directory>' with yours, and execute command in `cmdToCreateBuildConfig` before executing this one)": {
+            "value": "[concat('oc start-build <build-config-name> --from-dir <path-to-dockerfile-directory> --follow -n ', variables('const_appProjName'))]",
             "type": "string"
         },
         "appDeploymentYamlEncoded (Use `echo \"copied-value\" | base64 -d` to decode the text)": {
