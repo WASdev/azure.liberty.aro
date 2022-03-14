@@ -224,14 +224,14 @@
                     {
                         "name": "projectMgrInfo",
                         "type": "Microsoft.Common.Section",
-                        "label": "Provide project manager information for the cluster",
+                        "label": "Provide project administrator information for the cluster",
                         "elements": [
                             {
                                 "name": "projMgrUsername",
                                 "type": "Microsoft.Common.TextBox",
-                                "label": "Project manager",
-                                "defaultValue": "manager",
-                                "toolTip": "Project manager has rights to view and modify any resource in the project except for quota. Only letters and numbers are allowed.",
+                                "label": "Project administrator",
+                                "defaultValue": "admin",
+                                "toolTip": "Project administrator has rights to view and modify any resource in the project except for quota. Only letters and numbers are allowed.",
                                 "constraints": {
                                     "required": true,
                                     "regex": "^[a-z0-9A-Z]{1,30}$",
@@ -242,10 +242,10 @@
                                 "name": "projMgrPassword",
                                 "type": "Microsoft.Common.PasswordBox",
                                 "label": {
-                                    "password": "Password for project manager",
+                                    "password": "Password for project administrator",
                                     "confirmPassword": "Confirm password"
                                 },
-                                "toolTip": "Password for project manager.",
+                                "toolTip": "Password for project administrator.",
                                 "constraints": {
                                     "required": true,
                                     "regex": "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[A-Za-z\\d]{12,}$",
