@@ -217,19 +217,6 @@ else
 fi
 oc apply -f htpasswd-cr.yaml >> $logFile 2>&1
 
-# Configure built-in container registry
-oc project openshift-image-registry
-oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge >> $logFile
-oc policy add-role-to-user registry-viewer $projMgrUsername >> $logFile 2>&1
-oc policy add-role-to-user registry-editor $projMgrUsername >> $logFile 2>&1
-wait_route_available default-route openshift-image-registry $logFile
-if [[ $? -ne 0 ]]; then
-  echo "The route default-route is not available." >&2
-  exit 1
-fi
-registryHost=$(oc get route default-route --template='{{ .spec.host }}')
-echo "registryHost: $registryHost" >> $logFile
-
 # Create a new project and grant its admin role to the user
 oc new-project $Project_Name
 oc project $Project_Name
@@ -245,10 +232,6 @@ if [ "$deployApplication" = True ]; then
         echo "Failed to sign into the cluster with ${projMgrUsername}." >&2
         exit 1
     fi
-
-    registryUsername=$(oc whoami)
-    registryPassword=$(oc whoami -t)
-    echo "registryUsername: $registryUsername" >> $logFile
 
     # Import container image to the built-in container registry of the OpenShift cluster
     oc import-image ${Application_Image} --from=${sourceImagePath} --reference-policy=local --confirm
@@ -287,7 +270,6 @@ fi
 
 # Write outputs to deployment script output path
 result=$(jq -n -c --arg consoleUrl $consoleUrl '{consoleUrl: $consoleUrl}')
-result=$(echo "$result" | jq --arg containerRegistryUrl "$registryHost" '{"containerRegistryUrl": $containerRegistryUrl} + .')
 result=$(echo "$result" | jq --arg appDeploymentYaml "$appDeploymentYaml" '{"appDeploymentYaml": $appDeploymentYaml} + .')
 if [ "$deployApplication" = True ]; then
     result=$(echo "$result" | jq --arg appEndpoint "$appEndpoint" '{"appEndpoint": $appEndpoint} + .')
