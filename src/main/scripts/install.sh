@@ -14,7 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-MAX_RETRIES=99
+MAX_RETRIES=299
 
 wait_login_complete() {
     username=$1
