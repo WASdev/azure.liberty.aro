@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+# See https://github.com/WASdev/azure.liberty.aro/issues/60
 MAX_RETRIES=299
 
 wait_login_complete() {
