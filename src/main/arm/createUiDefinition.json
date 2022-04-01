@@ -303,7 +303,7 @@
                                             "value": "1"
                                         },
                                         {
-                                            "label": "The Open Liberty sample image: icr.io/appcafe/open-liberty/samples/getting-started",
+                                            "label": "The Open Liberty sample image: icr.io/appcafe/open-liberty/samples/getting-started (details on sample application here: https://github.com/OpenLiberty/sample-getting-started)",
                                             "value": "2"
                                         }
                                     ],
