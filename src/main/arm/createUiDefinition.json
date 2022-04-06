@@ -220,39 +220,6 @@
                             }
                         ],
                         "visible": "[not(bool(steps('Cluster').createCluster))]"
-                    },
-                    {
-                        "name": "projectMgrInfo",
-                        "type": "Microsoft.Common.Section",
-                        "label": "Provide project administrator information for the cluster",
-                        "elements": [
-                            {
-                                "name": "projMgrUsername",
-                                "type": "Microsoft.Common.TextBox",
-                                "label": "Project administrator",
-                                "defaultValue": "admin",
-                                "toolTip": "Project administrator has rights to view and modify any resource in the project except for quota. Only letters and numbers are allowed.",
-                                "constraints": {
-                                    "required": true,
-                                    "regex": "^[a-z0-9A-Z]{1,30}$",
-                                    "validationMessage": "The value must be 1-30 characters long and must only contain letters and numbers."
-                                }
-                            },
-                            {
-                                "name": "projMgrPassword",
-                                "type": "Microsoft.Common.PasswordBox",
-                                "label": {
-                                    "password": "Password for project administrator",
-                                    "confirmPassword": "Confirm password"
-                                },
-                                "toolTip": "Password for project administrator.",
-                                "constraints": {
-                                    "required": true,
-                                    "regex": "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[A-Za-z\\d]{12,}$",
-                                    "validationMessage": "The password must contain at least 12 characters, with at least 1 uppercase letter, 1 lowercase letter and 1 number, and special characters are not allowed."
-                                }
-                            }
-                        ]
                     }
                 ]
             },
@@ -370,8 +337,6 @@
             "rpObjectId": "[steps('Cluster').createClusterInfo.rpObjectId]",
             "clusterName": "[last(split(steps('Cluster').clusterInfo.clusterSelector.id, '/'))]",
             "clusterRGName": "[last(take(split(steps('Cluster').clusterInfo.clusterSelector.id, '/'), 5))]",
-            "projMgrUsername": "[steps('Cluster').projectMgrInfo.projMgrUsername]",
-            "projMgrPassword": "[steps('Cluster').projectMgrInfo.projMgrPassword]",
             "deployApplication": "[bool(steps('Application').deployApplication)]",
             "appImagePath": "[if(equals(steps('Application').appImageInfo.appImageOption, '2'), 'icr.io/appcafe/open-liberty/samples/getting-started', if(equals(steps('Application').appImageInfo.appImageOption, '3'), 'docker.io/ibmcom/websphere-liberty-sample:1.0.0', steps('Application').appImageInfo.appImagePath))]",
             "appReplicas": "[int(steps('Application').appLoadBalancingInfo.appReplicas)]"

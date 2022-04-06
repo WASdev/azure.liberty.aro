@@ -50,18 +50,6 @@
                 "description": "Name for the resource group of the existing cluster"
             }
         },
-        "projMgrUsername": {
-            "type": "string",
-            "metadata": {
-                "description": "Username for cluster admin."
-            }
-        },
-        "projMgrPassword": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Password for cluster admin."
-            }
-        },
         "pullSecret": {
             "type": "securestring",
             "defaultValue": "",
@@ -346,16 +334,6 @@
             "properties": {
                 "AzCliVersion": "2.15.0",
                 "arguments": "[concat(variables('const_arguments1'), variables('const_arguments2'))]",
-                "environmentVariables": [
-                    {
-                        "name": "PROJ_MGR_USERNAME",
-                        "value": "[parameters('projMgrUsername')]"
-                    },
-                    {
-                        "name": "PROJ_MGR_PASSWORD",
-                        "secureValue": "[parameters('projMgrPassword')]"
-                    }
-                ],
                 "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('install.sh', parameters('_artifactsLocationSasToken')))]",
                 "supportingScriptUris":[
                     "[uri(variables('const_scriptLocation'), concat('open-liberty-operator-subscription.yaml', parameters('_artifactsLocationSasToken')))]",
@@ -447,10 +425,6 @@
         "cmdToGetAppService": {
             "condition": "[parameters('deployApplication')]",
             "value": "[concat('oc get service ', variables('const_appName'), ' -n ', variables('const_appProjName'))]",
-            "type": "string"
-        },
-        "cmdToLoginWithProjManager (Please replace '<projMgrUsername>' and '<projMgrPwd>' with your specified project manager info)": {
-            "value": "[concat('oc login $(', variables('const_cmdToGetApiServer'), ') -u <projMgrUsername> -p <projMgrPwd>')]",
             "type": "string"
         },
         "cmdToCreateImageStream (Please replace '<image-name>' with yours and execute command in `cmdToLoginWithProjManager` before executing this one)": {

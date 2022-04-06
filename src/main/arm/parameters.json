@@ -22,12 +22,6 @@
         "clusterRGName": {
             "value": "${clusterRGName}"
         },
-        "projMgrUsername": {
-            "value": "${projMgrUsername}"
-        },
-        "projMgrPassword": {
-            "value": "${projMgrPassword}"
-        },
         "deployApplication": {
             "value": "${deployApplication}"
         },
