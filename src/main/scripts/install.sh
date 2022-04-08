@@ -167,8 +167,6 @@ export Application_Name=$6
 export Project_Name=$7
 export Application_Image=$8
 export Application_Replicas=$9
-projMgrUsername="$PROJ_MGR_USERNAME"
-projMgrPassword="$PROJ_MGR_PASSWORD"
 logFile=deployment.log
 
 # Install utilities
@@ -206,34 +204,12 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# Configure an HTPasswd identity provider
-oc get secret htpass-secret -n openshift-config 2>/dev/null
-if [ $? -ne 0 ]; then
-    htpasswd -c -B -b users.htpasswd $projMgrUsername $projMgrPassword >> $logFile 2>&1
-    oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd -n openshift-config >> $logFile
-else
-    oc get secret htpass-secret -ojsonpath={.data.htpasswd} -n openshift-config | base64 -d > users.htpasswd
-    htpasswd -bB users.htpasswd $projMgrUsername $projMgrPassword >> $logFile 2>&1
-    oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd --dry-run=client -o yaml -n openshift-config | oc replace -f - >> $logFile
-fi
-oc apply -f htpasswd-cr.yaml >> $logFile 2>&1
-
-# Create a new project and grant its admin role to the user
+# Create a new project for managing workload of the user
 oc new-project $Project_Name
 oc project $Project_Name
-oc adm policy add-role-to-user admin $projMgrUsername >> $logFile 2>&1
 
 # Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then
-    # Get access token of the user
-    oc logout
-    sleep 10
-    wait_login_complete $projMgrUsername $projMgrPassword "$apiServerUrl" $logFile
-    if [[ $? -ne 0 ]]; then
-        echo "Failed to sign into the cluster with ${projMgrUsername}." >&2
-        exit 1
-    fi
-
     # Import container image to the built-in container registry of the OpenShift cluster
     oc import-image ${Application_Image} --from=${sourceImagePath} --reference-policy=local --confirm
 
@@ -250,7 +226,6 @@ if [ "$deployApplication" = True ]; then
     oc apply -f open-liberty-application.yaml >> $logFile
 
     # Wait until the application deployment completes
-    oc project ${Project_Name}
     wait_deployment_complete ${Application_Name} ${Project_Name} ${logFile}
     if [[ $? != 0 ]]; then
         echo "The OpenLibertyApplication ${Application_Name} is not available." >&2
