@@ -137,6 +137,28 @@ wait_deployment_complete() {
     echo "Deployment ${deploymentName} completed." >> $logFile
 }
 
+wait_project_created() {
+    projectName=$1
+    logFile=$2
+
+    cnt=0
+    oc new-project ${projectName} 2>/dev/null
+    oc get project ${projectName} 2>/dev/null
+    while [ $? -ne 0 ]
+    do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Unable to create the project ${projectName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        sleep 5
+        oc new-project ${projectName} 2>/dev/null
+        oc get project ${projectName} 2>/dev/null
+    done
+}
+
 wait_route_available() {
     routeName=$1
     namespaceName=$2
@@ -205,13 +227,17 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Create a new project for managing workload of the user
-oc new-project $Project_Name
+wait_project_created $Project_Name ${logFile}
+if [[ $? -ne 0 ]]; then
+  echo "Failed to create project ${Project_Name}." >&2
+  exit 1
+fi
 oc project $Project_Name
 
 # Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then
     # Import container image to the built-in container registry of the OpenShift cluster
-    oc import-image ${Application_Image} --from=${sourceImagePath} --reference-policy=local --confirm
+    oc import-image ${Application_Image} --from=${sourceImagePath} --namespace ${Project_Name} --reference-policy=local --confirm
 
     # Check whether the source image is successfully imported to the built-in container registry
     oc get imagestreamtag ${Application_Image} --namespace ${Project_Name}
@@ -238,7 +264,7 @@ if [ "$deployApplication" = True ]; then
         echo "The route ${Application_Name} is not available." >&2
         exit 1
     fi
-    appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')
+    appEndpoint=$(oc get route ${Application_Name} --namespace ${Project_Name} --template='{{ .spec.host }}')
 else
     # Output base64 encoded deployment template yaml file content
     appDeploymentYaml=$(cat open-liberty-application.yaml.template | sed -e "s/\${Project_Name}/${Project_Name}/g" -e "s/\${Application_Replicas}/${Application_Replicas}/g" | base64)
