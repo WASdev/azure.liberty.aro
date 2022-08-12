@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "_artifactsLocation": {
-            "value": "${artifactsLocationBase}/${project.artifactId}/${git.tag}/src/main/"
+            "value": "${artifactsLocationBase}/src/main/"
         },
         "identity": {
             "value": {

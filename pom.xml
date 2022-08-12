@@ -20,12 +20,12 @@
 
     <groupId>com.ibm.websphere.azure</groupId>
     <artifactId>azure.liberty.aro</artifactId>
-    <version>1.0.36</version>
+    <version>1.0.37</version>
     
     <parent>
         <groupId>com.microsoft.azure.iaas</groupId>
         <artifactId>azure-javaee-iaas-parent</artifactId>
-        <version>1.0.11</version>
+        <version>1.0.16</version>
         <relativePath></relativePath>
     </parent>
     
@@ -33,6 +33,8 @@
     <name>${project.artifactId}</name>
 
     <properties>
+        <git.repo>WASdev</git.repo>
+        <artifactsLocationBase>https://raw.githubusercontent.com/${git.repo}/${project.artifactId}/${git.tag}</artifactsLocationBase>
         <test.parameters>-TestParameter '@{&quot;PasswordMinLength&quot;=6}'</test.parameters>
         <azure.apiVersion>2020-06-01</azure.apiVersion>
         <azure.apiVersion.vNetRoleAssignment>2018-09-01-preview</azure.apiVersion.vNetRoleAssignment>
