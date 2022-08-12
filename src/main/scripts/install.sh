@@ -159,6 +159,30 @@ wait_project_created() {
     done
 }
 
+wait_image_imported() {
+    appImage=$1
+    sourceImagePath=$2
+    projectName=$3
+    logFile=$4
+
+    cnt=0
+    oc import-image ${appImage} --from=${sourceImagePath} --namespace ${projectName} --reference-policy=local --confirm 2>/dev/null
+    oc get imagestreamtag ${appImage} --namespace ${projectName} 2>/dev/null
+    while [ $? -ne 0 ]
+    do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Unable to import source image ${sourceImagePath}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        sleep 5
+        oc import-image ${appImage} --from=${sourceImagePath} --namespace ${projectName} --reference-policy=local --confirm 2>/dev/null
+        oc get imagestreamtag ${appImage} --namespace ${projectName} 2>/dev/null
+    done
+}
+
 wait_route_available() {
     routeName=$1
     namespaceName=$2
@@ -237,10 +261,7 @@ oc project $Project_Name
 # Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then
     # Import container image to the built-in container registry of the OpenShift cluster
-    oc import-image ${Application_Image} --from=${sourceImagePath} --namespace ${Project_Name} --reference-policy=local --confirm
-
-    # Check whether the source image is successfully imported to the built-in container registry
-    oc get imagestreamtag ${Application_Image} --namespace ${Project_Name}
+    wait_image_imported ${Application_Image} ${sourceImagePath} ${Project_Name} ${logFile}
     if [[ $? != 0 ]]; then
         echo "Unable to import source image ${sourceImagePath} to the built-in container registry of the OpenShift cluster. Please check if it's a public image and the source image path is correct" >&2
         exit 1
