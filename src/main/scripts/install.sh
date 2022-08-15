@@ -204,8 +204,8 @@ wait_route_available() {
     done
 
     cnt=0
-    appEndpoint=$(oc get route ${routeName} -n ${namespaceName} --template='{{ .spec.host }}')
-    echo "appEndpoint is ${appEndpoint}" >> $logFile
+    appEndpoint=$(oc get route ${routeName} -n ${namespaceName} --template='{{ .spec.host }}' | xargs)
+    echo "appEndpoint is ${appEndpoint}"
     while [[ -z $appEndpoint ]]
     do
         if [ $cnt -eq $MAX_RETRIES ]; then
@@ -215,8 +215,8 @@ wait_route_available() {
         cnt=$((cnt+1))
         sleep 5
         echo "Wait until the host of route ${routeName} is available, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
-        appEndpoint=$(oc get route ${routeName} -n ${namespaceName} --template='{{ .spec.host }}')
-        echo "appEndpoint is ${appEndpoint}" >> $logFile
+        appEndpoint=$(oc get route ${routeName} -n ${namespaceName} --template='{{ .spec.host }}' | xargs)
+        echo "appEndpoint is ${appEndpoint}"
     done
 }
 
