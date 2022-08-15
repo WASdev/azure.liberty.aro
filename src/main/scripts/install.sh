@@ -202,6 +202,22 @@ wait_route_available() {
         sleep 5
         oc get route ${routeName} -n ${namespaceName} 2>/dev/null
     done
+
+    cnt=0
+    appEndpoint=$(oc get route ${routeName} -n ${namespaceName} --template='{{ .spec.host }}')
+    echo "appEndpoint is ${appEndpoint}" >> $logFile
+    while [[ -z $appEndpoint ]]
+    do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+        sleep 5
+        echo "Wait until the host of route ${routeName} is available, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        appEndpoint=$(oc get route ${routeName} -n ${namespaceName} --template='{{ .spec.host }}')
+        echo "appEndpoint is ${appEndpoint}" >> $logFile
+    done
 }
 
 clusterRGName=$1
