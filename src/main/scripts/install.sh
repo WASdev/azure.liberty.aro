@@ -91,6 +91,26 @@ wait_subscription_created() {
     echo "Subscription ${subscriptionName} created." >> $logFile
 }
 
+wait_resource_applied() {
+    resourceYamlName=$1
+    logFile=$2
+
+    cnt=0
+    oc apply -f $resourceYamlName >> $logFile
+    while [ $? -ne 0 ]
+    do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Failed to apply the resource YAML file ${resourceYamlName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        sleep 5
+        oc apply -f $resourceYamlName >> $logFile
+    done
+}
+
 wait_deployment_complete() {
     deploymentName=$1
     namespaceName=$2
@@ -286,7 +306,11 @@ if [ "$deployApplication" = True ]; then
     # Deploy open liberty application and output its base64 encoded deployment yaml file content
     envsubst < "open-liberty-application.yaml.template" > "open-liberty-application.yaml"
     appDeploymentYaml=$(cat open-liberty-application.yaml | base64)
-    oc apply -f open-liberty-application.yaml >> $logFile
+    wait_resource_applied open-liberty-application.yaml $logFile
+    if [[ $? != 0 ]]; then
+        echo "Failed to create OpenLibertyApplication defined in open-liberty-application.yaml." >&2
+        exit 1
+    fi
 
     # Wait until the application deployment completes
     wait_deployment_complete ${Application_Name} ${Project_Name} ${logFile}
