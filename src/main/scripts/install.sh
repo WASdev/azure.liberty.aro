@@ -204,7 +204,7 @@ wait_route_available() {
     done
 
     cnt=0
-    appEndpoint=$(oc get route ${routeName} -n ${namespaceName} --template='{{ .spec.host }}' | xargs)
+    appEndpoint=$(oc get route ${routeName} -n ${namespaceName} -o=jsonpath='{.spec.host}')
     echo "appEndpoint is ${appEndpoint}"
     while [[ -z $appEndpoint ]]
     do
@@ -215,7 +215,7 @@ wait_route_available() {
         cnt=$((cnt+1))
         sleep 5
         echo "Wait until the host of route ${routeName} is available, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
-        appEndpoint=$(oc get route ${routeName} -n ${namespaceName} --template='{{ .spec.host }}' | xargs)
+        appEndpoint=$(oc get route ${routeName} -n ${namespaceName} -o=jsonpath='{.spec.host}')
         echo "appEndpoint is ${appEndpoint}"
     done
 }
@@ -301,7 +301,7 @@ if [ "$deployApplication" = True ]; then
         echo "The route ${Application_Name} is not available." >&2
         exit 1
     fi
-    appEndpoint=$(oc get route ${Application_Name} --namespace ${Project_Name} --template='{{ .spec.host }}')
+    appEndpoint=$(oc get route ${Application_Name} -n ${Project_Name} -o=jsonpath='{.spec.host}')
 else
     # Output base64 encoded deployment template yaml file content
     appDeploymentYaml=$(cat open-liberty-application.yaml.template | sed -e "s/\${Project_Name}/${Project_Name}/g" -e "s/\${Application_Replicas}/${Application_Replicas}/g" | base64)
