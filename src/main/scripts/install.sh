@@ -302,6 +302,7 @@ if [ "$deployApplication" = True ]; then
         exit 1
     fi
     appEndpoint=$(oc get route ${Application_Name} -n ${Project_Name} -o=jsonpath='{.spec.host}')
+    echo "appEndpoint is ${appEndpoint}"
 else
     # Output base64 encoded deployment template yaml file content
     appDeploymentYaml=$(cat open-liberty-application.yaml.template | sed -e "s/\${Project_Name}/${Project_Name}/g" -e "s/\${Application_Replicas}/${Application_Replicas}/g" | base64)
