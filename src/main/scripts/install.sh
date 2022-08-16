@@ -158,12 +158,12 @@ wait_deployment_complete() {
 }
 
 wait_project_created() {
-    projectName=$1
+    namespaceName=$1
     logFile=$2
 
     cnt=0
-    oc new-project ${projectName} 2>/dev/null
-    oc get project ${projectName} 2>/dev/null
+    oc new-project ${namespaceName} 2>/dev/null
+    oc get project ${namespaceName} 2>/dev/null
     while [ $? -ne 0 ]
     do
         if [ $cnt -eq $MAX_RETRIES ]; then
@@ -172,22 +172,22 @@ wait_project_created() {
         fi
         cnt=$((cnt+1))
 
-        echo "Unable to create the project ${projectName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        echo "Unable to create the project ${namespaceName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
-        oc new-project ${projectName} 2>/dev/null
-        oc get project ${projectName} 2>/dev/null
+        oc new-project ${namespaceName} 2>/dev/null
+        oc get project ${namespaceName} 2>/dev/null
     done
 }
 
 wait_image_imported() {
     appImage=$1
     sourceImagePath=$2
-    projectName=$3
+    namespaceName=$3
     logFile=$4
 
     cnt=0
-    oc import-image ${appImage} --from=${sourceImagePath} --namespace ${projectName} --reference-policy=local --confirm 2>/dev/null
-    oc get imagestreamtag ${appImage} --namespace ${projectName} 2>/dev/null
+    oc import-image ${appImage} --from=${sourceImagePath} --namespace ${namespaceName} --reference-policy=local --confirm 2>/dev/null
+    oc get imagestreamtag ${appImage} --namespace ${namespaceName} 2>/dev/null
     while [ $? -ne 0 ]
     do
         if [ $cnt -eq $MAX_RETRIES ]; then
@@ -198,8 +198,8 @@ wait_image_imported() {
 
         echo "Unable to import source image ${sourceImagePath}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
-        oc import-image ${appImage} --from=${sourceImagePath} --namespace ${projectName} --reference-policy=local --confirm 2>/dev/null
-        oc get imagestreamtag ${appImage} --namespace ${projectName} 2>/dev/null
+        oc import-image ${appImage} --from=${sourceImagePath} --namespace ${namespaceName} --reference-policy=local --confirm 2>/dev/null
+        oc get imagestreamtag ${appImage} --namespace ${namespaceName} 2>/dev/null
     done
 }
 
