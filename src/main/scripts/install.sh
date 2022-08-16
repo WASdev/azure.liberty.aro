@@ -319,13 +319,13 @@ if [ "$deployApplication" = True ]; then
         exit 1
     fi
 
-    # Get the host of the route to visit the deployed application
+    # Get the host of the route which is assigned to variable 'appEndpoint' inside function 'wait_route_available'
+    appEndpoint=
     wait_route_available ${Application_Name} ${Project_Name} $logFile
     if [[ $? -ne 0 ]]; then
         echo "The route ${Application_Name} is not available." >&2
         exit 1
     fi
-    appEndpoint=$(oc get route ${Application_Name} -n ${Project_Name} -o=jsonpath='{.spec.host}')
     echo "appEndpoint is ${appEndpoint}"
 else
     # Output base64 encoded deployment template yaml file content
