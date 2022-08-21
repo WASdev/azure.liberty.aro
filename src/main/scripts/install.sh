@@ -91,6 +91,26 @@ wait_subscription_created() {
     echo "Subscription ${subscriptionName} created." >> $logFile
 }
 
+wait_resource_applied() {
+    resourceYamlName=$1
+    logFile=$2
+
+    cnt=0
+    oc apply -f $resourceYamlName >> $logFile
+    while [ $? -ne 0 ]
+    do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Failed to apply the resource YAML file ${resourceYamlName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        sleep 5
+        oc apply -f $resourceYamlName >> $logFile
+    done
+}
+
 wait_deployment_complete() {
     deploymentName=$1
     namespaceName=$2
@@ -137,6 +157,52 @@ wait_deployment_complete() {
     echo "Deployment ${deploymentName} completed." >> $logFile
 }
 
+wait_project_created() {
+    namespaceName=$1
+    logFile=$2
+
+    cnt=0
+    oc new-project ${namespaceName} 2>/dev/null
+    oc get project ${namespaceName} 2>/dev/null
+    while [ $? -ne 0 ]
+    do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Unable to create the project ${namespaceName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        sleep 5
+        oc new-project ${namespaceName} 2>/dev/null
+        oc get project ${namespaceName} 2>/dev/null
+    done
+}
+
+wait_image_imported() {
+    appImage=$1
+    sourceImagePath=$2
+    namespaceName=$3
+    logFile=$4
+
+    cnt=0
+    oc import-image ${appImage} --from=${sourceImagePath} --namespace ${namespaceName} --reference-policy=local --confirm 2>/dev/null
+    oc get imagestreamtag ${appImage} --namespace ${namespaceName} 2>/dev/null
+    while [ $? -ne 0 ]
+    do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+
+        echo "Unable to import source image ${sourceImagePath}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        sleep 5
+        oc import-image ${appImage} --from=${sourceImagePath} --namespace ${namespaceName} --reference-policy=local --confirm 2>/dev/null
+        oc get imagestreamtag ${appImage} --namespace ${namespaceName} 2>/dev/null
+    done
+}
+
 wait_route_available() {
     routeName=$1
     namespaceName=$2
@@ -155,6 +221,22 @@ wait_route_available() {
         echo "Unable to get the route ${routeName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
         oc get route ${routeName} -n ${namespaceName} 2>/dev/null
+    done
+
+    cnt=0
+    appEndpoint=$(oc get route ${routeName} -n ${namespaceName} -o=jsonpath='{.spec.host}')
+    echo "appEndpoint is ${appEndpoint}"
+    while [[ -z $appEndpoint ]]
+    do
+        if [ $cnt -eq $MAX_RETRIES ]; then
+            echo "Timeout and exit due to the maximum retries reached." >> $logFile 
+            return 1
+        fi
+        cnt=$((cnt+1))
+        sleep 5
+        echo "Wait until the host of route ${routeName} is available, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
+        appEndpoint=$(oc get route ${routeName} -n ${namespaceName} -o=jsonpath='{.spec.host}')
+        echo "appEndpoint is ${appEndpoint}"
     done
 }
 
@@ -205,16 +287,17 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Create a new project for managing workload of the user
-oc new-project $Project_Name
+wait_project_created $Project_Name ${logFile}
+if [[ $? -ne 0 ]]; then
+  echo "Failed to create project ${Project_Name}." >&2
+  exit 1
+fi
 oc project $Project_Name
 
 # Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then
     # Import container image to the built-in container registry of the OpenShift cluster
-    oc import-image ${Application_Image} --from=${sourceImagePath} --reference-policy=local --confirm
-
-    # Check whether the source image is successfully imported to the built-in container registry
-    oc get imagestreamtag ${Application_Image} --namespace ${Project_Name}
+    wait_image_imported ${Application_Image} ${sourceImagePath} ${Project_Name} ${logFile}
     if [[ $? != 0 ]]; then
         echo "Unable to import source image ${sourceImagePath} to the built-in container registry of the OpenShift cluster. Please check if it's a public image and the source image path is correct" >&2
         exit 1
@@ -223,7 +306,11 @@ if [ "$deployApplication" = True ]; then
     # Deploy open liberty application and output its base64 encoded deployment yaml file content
     envsubst < "open-liberty-application.yaml.template" > "open-liberty-application.yaml"
     appDeploymentYaml=$(cat open-liberty-application.yaml | base64)
-    oc apply -f open-liberty-application.yaml >> $logFile
+    wait_resource_applied open-liberty-application.yaml $logFile
+    if [[ $? != 0 ]]; then
+        echo "Failed to create OpenLibertyApplication defined in open-liberty-application.yaml." >&2
+        exit 1
+    fi
 
     # Wait until the application deployment completes
     wait_deployment_complete ${Application_Name} ${Project_Name} ${logFile}
@@ -232,13 +319,14 @@ if [ "$deployApplication" = True ]; then
         exit 1
     fi
 
-    # Get the host of the route to visit the deployed application
+    # Get the host of the route which is assigned to variable 'appEndpoint' inside function 'wait_route_available'
+    appEndpoint=
     wait_route_available ${Application_Name} ${Project_Name} $logFile
     if [[ $? -ne 0 ]]; then
         echo "The route ${Application_Name} is not available." >&2
         exit 1
     fi
-    appEndpoint=$(oc get route ${Application_Name} --template='{{ .spec.host }}')
+    echo "appEndpoint is ${appEndpoint}"
 else
     # Output base64 encoded deployment template yaml file content
     appDeploymentYaml=$(cat open-liberty-application.yaml.template | sed -e "s/\${Project_Name}/${Project_Name}/g" -e "s/\${Application_Replicas}/${Application_Replicas}/g" | base64)

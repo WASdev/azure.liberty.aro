@@ -13,7 +13,7 @@ on:
   # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "package"}'
 env:
   refArmttk: d97aa57d259e2fc8562e11501b1cf902265129d9
-  refJavaee: 85d5d10dd045a90452ae01cad20b258ce853ec18
+  refJavaee: f25ab89a2a8848da39b84e5d6c927f4c4cb47200
   repoName: "azure.liberty.aro"
 
 jobs:
