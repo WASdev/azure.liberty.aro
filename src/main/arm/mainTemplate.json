@@ -152,7 +152,7 @@
     "resources": [
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "${azure.apiVersion.deployments}",
             "name": "${customer.usage.attribution.id}",
             "properties": {
                 "mode": "Incremental",
@@ -166,7 +166,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "${azure.apiVersion.deployments}",
             "name": "${aro.start}",
             "properties": {
                 "mode": "Incremental",
@@ -209,7 +209,7 @@
         {
            "condition": "[parameters('createCluster')]",
             "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "${azure.apiVersion.virtualNetworks}",
             "name": "[variables('name_clusterVNetName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -345,7 +345,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "${azure.apiVersion.deployments}",
             "name": "${aro.end}",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deploymentScripts', variables('name_deploymentScriptName'))]"
