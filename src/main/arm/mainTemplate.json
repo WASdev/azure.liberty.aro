@@ -287,7 +287,8 @@
                 "clusterProfile": {
                     "domain": "[variables('const_clusterDomainName')]",
                     "resourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', concat('MC_', resourceGroup().name, '_', variables('name_clusterName'), '_', parameters('location')))]",
-                    "pullSecret": "[parameters('pullSecret')]"
+                    "pullSecret": "[parameters('pullSecret')]",
+                    "fipsValidatedModules": "Disabled"
                 },
                 "networkProfile": {
                     "podCidr": "10.128.0.0/14",
@@ -299,7 +300,8 @@
                 },
                 "masterProfile": {
                     "vmSize": "[parameters('vmSize')]",
-                    "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('name_clusterVNetName'), 'master')]"
+                    "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('name_clusterVNetName'), 'master')]",
+                    "encryptionAtHost": "Disabled"
                 },
                 "workerProfiles": [
                     {
@@ -307,7 +309,8 @@
                         "vmSize": "[parameters('workerVmSize')]",
                         "diskSizeGB": 128,
                         "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('name_clusterVNetName'), 'worker')]",
-                        "count": 3
+                        "count": 3,
+                        "encryptionAtHost": "Disabled"
                     }
                 ],
                 "apiserverProfile": {
