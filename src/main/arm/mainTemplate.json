@@ -85,7 +85,7 @@
                 "description": "The service principal Object ID of the Azure Red Hat OpenShift Resource Provider"
             }
         },
-        "masterVmSize": {
+        "vmSize": {
             "type": "string",
             "defaultValue": "Standard_D8s_v3",
             "metadata": {
@@ -298,7 +298,7 @@
                     "clientSecret": "[variables('const_aadClientSecret')]"
                 },
                 "masterProfile": {
-                    "vmSize": "[parameters('masterVmSize')]",
+                    "vmSize": "[parameters('vmSize')]",
                     "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('name_clusterVNetName'), 'master')]"
                 },
                 "workerProfiles": [
