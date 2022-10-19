@@ -12,14 +12,20 @@ on:
   # REPO_NAME=WASdev/azure.liberty.aro
   # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "package"}'
 env:
-  refArmttk: d97aa57d259e2fc8562e11501b1cf902265129d9
-  refJavaee: f25ab89a2a8848da39b84e5d6c927f4c4cb47200
   repoName: "azure.liberty.aro"
 
 jobs:
   package:
     runs-on: ubuntu-latest
     steps:
+      - name: Get versions of external dependencies
+        run: |
+          curl -Lo external-deps-versions.properties https://raw.githubusercontent.com/Azure/azure-javaee-iaas/main/external-deps-versions.properties
+          source external-deps-versions.properties
+          echo "azCliVersion=${AZ_CLI_VERSION}" >> $GITHUB_ENV
+          echo "bicepVersion=${BICEP_VERSION}" >> $GITHUB_ENV
+          echo "refArmttk=${ARM_TTK_REFERENCE}" >> $GITHUB_ENV
+          echo "refJavaee=${AZURE_JAVAEE_IAAS_REFERENCE}" >> $GITHUB_ENV
       - name: Checkout azure-javaee-iaas
         uses: actions/checkout@v2
         with:
