@@ -281,8 +281,10 @@ if [ "$DEPLOY_WLO" = False ]; then
     operatorDeploymentName=olo-controller-manager
     wait_subscription_created open-liberty-certified openshift-operators open-liberty-operator-subscription.yaml ${logFile}
 else
+    # Add the IBM operator catalog
+    oc apply -f catalog-source.yaml
     # Install WebSphere Liberty Operator
-    operatorDeploymentName=websphere-liberty-controller-manager
+    operatorDeploymentName=wlo-controller-manager
     wait_subscription_created ibm-websphere-liberty openshift-operators websphere-liberty-operator-subscription.yaml ${logFile}
 fi
 if [[ $? -ne 0 ]]; then
