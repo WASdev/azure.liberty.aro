@@ -499,9 +499,19 @@
             "value": "[reference(variables('name_deploymentScriptName')).outputs.appDeploymentYaml]",
             "type": "string"
         },
+        "appDeploymentYaml": {
+            "condition": "[parameters('deployApplication')]",
+            "value": "[format('echo \"{0}\" | base64 -d', reference(variables('name_deploymentScriptName')).outputs.appDeploymentYaml)]",
+            "type": "string"
+        },
         "appDeploymentTemplateYamlEncoded (Use `echo \"copied-value\" | base64 -d` to decode the text)": {
             "condition": "[not(parameters('deployApplication'))]",
             "value": "[reference(variables('name_deploymentScriptName')).outputs.appDeploymentYaml]",
+            "type": "string"
+        },
+        "appDeploymentTemplateYaml": {
+            "condition": "[not(parameters('deployApplication'))]",
+            "value": "[format('echo \"{0}\" | base64 -d', reference(variables('name_deploymentScriptName')).outputs.appDeploymentYaml)]",
             "type": "string"
         },
         "cmdToUpdateOrCreateApplication (Please execute command in `cmdToLoginWithProjManager` before executing this one)": {
