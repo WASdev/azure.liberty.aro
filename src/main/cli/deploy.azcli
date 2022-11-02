@@ -155,6 +155,8 @@ fi
 parametersJson=$( cat $parametersFilePath | jq '.parameters' )
 createCluster=$( echo $parametersJson | jq '.createCluster.value' | sed 's/"//g' )
 parametersJson=$( echo $parametersJson | jq --argjson createCluster "$createCluster" '.createCluster.value = $createCluster' )
+deployWLO=$( echo $parametersJson | jq '.deployWLO.value' | sed 's/"//g' )
+parametersJson=$( echo $parametersJson | jq --argjson deployWLO "$deployWLO" '.deployWLO.value = $deployWLO' )
 deployApplication=$( echo $parametersJson | jq '.deployApplication.value' | sed 's/"//g' )
 parametersJson=$( echo $parametersJson | jq --argjson deployApp "$deployApplication" '.deployApplication.value = $deployApp' )
 appReplicas=$( echo $parametersJson | jq '.appReplicas.value' | sed 's/"//g' )

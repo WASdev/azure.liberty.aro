@@ -99,6 +99,38 @@
                 "description": "Worker Node VM Type"
             }
         },
+        "deployWLO": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Flag indicating whether to deploy WebSphere Liberty operator."
+            }
+        },
+        "edition": {
+            "type": "string",
+            "defaultValue": "IBM WebSphere Application Server",
+            "metadata": {
+                "description": "Product edition"
+            },
+            "allowedValues": [
+                "IBM WebSphere Application Server",
+                "IBM WebSphere Application Server Liberty Core",
+                "IBM WebSphere Application Server Network Deployment"
+            ]
+        },
+        "productEntitlementSource": {
+            "type": "string",
+            "defaultValue": "Standalone",
+            "metadata": {
+                "description": "Entitlement source for the product"
+            },
+            "allowedValues": [
+                "Standalone",
+                "IBM WebSphere Hybrid Edition",
+                "IBM Cloud Pak for Applications",
+                "IBM WebSphere Application Server Family Edition"
+            ]
+        },  
         "deployApplication": {
             "defaultValue": false,
             "type": "bool",
@@ -142,6 +174,7 @@
         "const_cmdToGetKubeadminPassword": "[concat(variables('const_cmdToGetKubeadminCredentials'), ' --query kubeadminPassword -o tsv')]",
         "const_cmdToGetKubeadminUsername": "[concat(variables('const_cmdToGetKubeadminCredentials'), ' --query kubeadminUsername -o tsv')]",
         "const_contribRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "const_metric": "[if(or(equals(parameters('productEntitlementSource'), 'Standalone'), equals(parameters('productEntitlementSource'), 'IBM WebSphere Application Server Family Edition')), 'Processor Value Unit (PVU)', 'Virtual Processor Core (VPC)')]",
         "const_scriptLocation": "[uri(parameters('_artifactsLocation'), 'scripts/')]",
         "const_suffix": "[take(replace(parameters('guidValue'), '-', ''), 6)]",
         "name_clusterName": "[if(parameters('createCluster'), concat('cluster', variables('const_suffix')), parameters('clusterName'))]",
@@ -340,7 +373,27 @@
                 "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('install.sh', parameters('_artifactsLocationSasToken')))]",
                 "supportingScriptUris":[
                     "[uri(variables('const_scriptLocation'), concat('open-liberty-operator-subscription.yaml', parameters('_artifactsLocationSasToken')))]",
-                    "[uri(variables('const_scriptLocation'), concat('open-liberty-application.yaml.template', parameters('_artifactsLocationSasToken')))]"
+                    "[uri(variables('const_scriptLocation'), concat('open-liberty-application.yaml.template', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(variables('const_scriptLocation'), concat('websphere-liberty-operator-subscription.yaml', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(variables('const_scriptLocation'), concat('websphere-liberty-application.yaml.template', parameters('_artifactsLocationSasToken')))]"
+                ],
+                "environmentVariables": [
+                    {
+                        "name": "DEPLOY_WLO",
+                        "value": "[parameters('deployWLO')]"
+                    },
+                    {
+                        "name": "WLA_EDITION",
+                        "value": "[parameters('edition')]"
+                    },
+                    {
+                        "name": "WLA_PRODUCT_ENTITLEMENT_SOURCE",
+                        "value": "[parameters('productEntitlementSource')]"
+                    },
+                    {
+                        "name": "WLA_METRIC",
+                        "value": "[variables('const_metric')]"
+                    }
                 ],
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
