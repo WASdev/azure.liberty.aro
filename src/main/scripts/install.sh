@@ -326,7 +326,7 @@ if [ "$deployApplication" = True ]; then
     fi
 
     # Deploy Open/WebSphere Liberty application and output its base64 encoded deployment yaml file content
-    envsubst "$appDeploymentTemplate" > "$appDeploymentFile"
+    envsubst < "$appDeploymentTemplate" > "$appDeploymentFile"
     appDeploymentYaml=$(cat $appDeploymentFile | base64)
     wait_resource_applied $appDeploymentFile $logFile
     if [[ $? != 0 ]]; then
