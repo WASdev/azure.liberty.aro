@@ -37,7 +37,7 @@
 1. Using `deploy.azcli` to deploy
 
    ```bash
-   ./deploy.azcli -n <deploymentName> -i <subscriptionId> -g <resourceGroupName> -l eastus -p <pull-secret-path> -c <aadClientId> -s <aadClientSecret> -a <aadObjectId> -r <rpObjectId>
+   ./deploy.azcli -n <deploymentName> -g <resourceGroupName> -l eastus -p <pull-secret-path> -c <aadClientId> -s <aadClientSecret> -a <aadObjectId> -r <rpObjectId>
    ```
 
 ## After deployment
