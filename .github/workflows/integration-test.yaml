@@ -101,8 +101,8 @@ jobs:
           ./deploy.azcli -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} -l ${{ env.location }} -t ${{ env.pullSecretEncoded }}
       - name: Verify the deployment
         run: |
-          outputs=$(az deployment group show -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} --query 'properties.outputs')
-          appEndpoint=$(echo $outputs | jq -r '.appEndpoint.value')
+          clusterName=$(az deployment group show -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} --query 'properties.outputs.clusterName.value' -o tsv)
+          appEndpoint=$(az resource show -n aroscript${clusterName:7} -g ${{ env.testResourceGroup }} --resource-type Microsoft.Resources/deploymentScripts --query "properties.outputs.appEndpoint" -o tsv)
           echo "appEndpoint: ${appEndpoint}"
           if [[ $deployApplication == "true" ]]; then
             if [[ -z "$appEndpoint" ]]; then
