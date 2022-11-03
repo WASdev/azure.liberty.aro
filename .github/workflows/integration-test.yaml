@@ -34,7 +34,7 @@ env:
   azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
   userName: ${{ secrets.USER_NAME }}
   uamiId: ${{ secrets.UAMI_ID }}
-  pullSecret: ${{ secrets.PULL_SECRET }}
+  pullSecretEncoded: ${{ secrets.PULL_SECRET_ENCODED }}
   msTeamsWebhook: ${{ secrets.MSTEAMS_WEBHOOK }}
   testResourceGroup: libertyAroTestRG${{ github.run_id }}${{ github.run_number }}
   testDeploymentName: libertyAroTestDeployment${{ github.run_id }}${{ github.run_number }}
@@ -98,7 +98,7 @@ jobs:
         run: |
           cd ${{ env.repoName }}/target/cli
           chmod a+x deploy.azcli
-          ./deploy.azcli -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} -l ${{ env.location }} -t ${{ env.pullSecret }}
+          ./deploy.azcli -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} -l ${{ env.location }} -t ${{ env.pullSecretEncoded }}
       - name: Verify the deployment
         run: |
           outputs=$(az deployment group show -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} --query 'properties.outputs')
