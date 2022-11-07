@@ -103,7 +103,7 @@
             "type": "bool",
             "defaultValue": false,
             "metadata": {
-                "description": "Flag indicating whether to deploy WebSphere Liberty operator."
+                "description": "Flag indicating whether to deploy WebSphere Liberty Operator."
             }
         },
         "edition": {

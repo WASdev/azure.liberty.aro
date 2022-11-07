@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       deployWLO:
-        description: 'WebSphere Liberty operator'
+        description: 'WebSphere Liberty Operator'
         required: true
         type: boolean
         default: false
@@ -20,14 +20,14 @@ on:
   # Allows you to run this workflow using GitHub workflow dispatch APIs
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
-  # Enable/disable WebSphere Liberty operator and sample application. Keep/delete Azure resources at the end.
+  # Enable/disable WebSphere Liberty Operator and sample application. Keep/delete Azure resources at the end.
   # curl --verbose -XPOST -u "WASdev:${PERSONAL_ACCESS_TOKEN}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/${REPO_NAME}/actions/workflows/integration-test.yaml/dispatches --data '{"ref": "main", "inputs":{"deployWLO": "true|false", "deployApplication": "true|false", "deleteAzureResources": "true|false"}}'
   repository_dispatch:
     types: [integration-test]
   # Allows you to run this workflow using GitHub repository dispatch APIs
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
-  # Enable/disable WebSphere Liberty operator and sample application. Keep/delete Azure resources at the end.
+  # Enable/disable WebSphere Liberty Operator and sample application. Keep/delete Azure resources at the end.
   # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "integration-test", "client_payload": {"deployWLO": true|false, "deployApplication": true|false, "deleteAzureResources": true|false}}'
 env:
   repoName: "azure.liberty.aro"
