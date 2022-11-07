@@ -253,13 +253,33 @@
                         }
                     },
                     {
+                        "name": "deployApplication",
+                        "type": "Microsoft.Common.OptionsGroup",
+                        "label": "Deploy an application?",
+                        "defaultValue": "No",
+                        "toolTip": "Select 'Yes' to deploy an application, or select 'No' if you prefer to manually deploy application later.",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "Yes",
+                                    "value": "true"
+                                },
+                                {
+                                    "label": "No",
+                                    "value": "false"
+                                }
+                            ],
+                            "required": true
+                        }
+                    },
+                    {
                         "name": "licenseInfo",
                         "type": "Microsoft.Common.InfoBox",
                         "options": {
                             "icon": "Info",
                             "text": "I accept the terms on the license agreement corresponding to the version of IBM Program in the application container by setting this value to true. See <a href='https://ibm.biz/was-license' target='_blank'>https://ibm.biz/was-license</a> for the license agreement applicable to this IBM Program. You must accept the license for the installation to work."
                         },
-                        "visible": "[bool(steps('Application').deployWLO)]"
+                        "visible": "[and(bool(steps('Application').deployWLO), bool(steps('Application').deployApplication))]"
                     },
                     {
                         "name": "acceptIBMLicenseAgreement",
@@ -270,7 +290,7 @@
                             "required": true,
                             "validationMessage": "The deployment will not proceed unless you accept the License Agreement."
                         },
-                        "visible": "[bool(steps('Application').deployWLO)]"
+                        "visible": "[and(bool(steps('Application').deployWLO), bool(steps('Application').deployApplication))]"
                     },
                     {
                         "name": "edition",
@@ -295,7 +315,7 @@
                             ],
                             "required": true
                         },
-                        "visible": "[bool(steps('Application').deployWLO)]"
+                        "visible": "[and(bool(steps('Application').deployWLO), bool(steps('Application').deployApplication))]"
                     },
                     {
                         "name": "productEntitlementSource",
@@ -324,27 +344,7 @@
                             ],
                             "required": true
                         },
-                        "visible": "[bool(steps('Application').deployWLO)]"
-                    },
-                    {
-                        "name": "deployApplication",
-                        "type": "Microsoft.Common.OptionsGroup",
-                        "label": "Deploy an application?",
-                        "defaultValue": "No",
-                        "toolTip": "Select 'Yes' to deploy an application, or select 'No' if you prefer to manually deploy application later.",
-                        "constraints": {
-                            "allowedValues": [
-                                {
-                                    "label": "Yes",
-                                    "value": "true"
-                                },
-                                {
-                                    "label": "No",
-                                    "value": "false"
-                                }
-                            ],
-                            "required": true
-                        }
+                        "visible": "[and(bool(steps('Application').deployWLO), bool(steps('Application').deployApplication))]"
                     },
                     {
                         "name": "appImageInfo",
