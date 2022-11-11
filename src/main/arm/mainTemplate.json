@@ -23,12 +23,6 @@
                 "description": "Location for all resources."
             }
         },
-        "identity": {
-            "type": "object",
-            "metadata": {
-                "description": "User-assigned managed identity granted with contributor role of the same subscription"
-            }
-        },
         "createCluster": {
             "defaultValue": true,
             "type": "bool",
@@ -158,8 +152,6 @@
         }
     },
     "variables": {
-        "const_aadClientName": "[concat('aadclient', variables('const_suffix'))]",
-        "const_aadClientSecret": "[if(and(parameters('createCluster'), empty(parameters('aadClientSecret'))), guid(skip(replace(parameters('guidValue'), '-', ''), 6)), parameters('aadClientSecret'))]",
         "const_appImage": "[concat(variables('const_appImageName'), ':', variables('const_appImageTag'))]",
         "const_appImageName": "[concat('image', variables('const_suffix'))]",
         "const_appImageTag": "1.0.0",
@@ -174,13 +166,15 @@
         "const_cmdToGetKubeadminPassword": "[concat(variables('const_cmdToGetKubeadminCredentials'), ' --query kubeadminPassword -o tsv')]",
         "const_cmdToGetKubeadminUsername": "[concat(variables('const_cmdToGetKubeadminCredentials'), ' --query kubeadminUsername -o tsv')]",
         "const_contribRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+        "const_identityName": "[concat('uami', variables('const_suffix'))]",
         "const_metric": "[if(or(equals(parameters('productEntitlementSource'), 'Standalone'), equals(parameters('productEntitlementSource'), 'IBM WebSphere Application Server Family Edition')), 'Processor Value Unit (PVU)', 'Virtual Processor Core (VPC)')]",
         "const_scriptLocation": "[uri(parameters('_artifactsLocation'), 'scripts/')]",
         "const_suffix": "[take(replace(parameters('guidValue'), '-', ''), 6)]",
         "name_clusterName": "[if(parameters('createCluster'), concat('cluster', variables('const_suffix')), parameters('clusterName'))]",
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
         "name_deploymentScriptName": "[concat('aroscript', variables('const_suffix'))]",
-        "name_spDeploymentScript": "[concat('spscript', variables('const_suffix'))]"
+        "name_preflightDeploymentScript": "[concat('preflightscript', variables('const_suffix'))]",
+        "name_roleAssignmentName": "[guid(format('Role assignment in group{0}', resourceGroup().id))]"
     },
     "resources": [
         {
@@ -214,29 +208,46 @@
         {
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "${azure.apiVersion.deploymentScript}",
-            "name": "[variables('name_spDeploymentScript')]",
+            "name": "[variables('name_preflightDeploymentScript')]",
             "location": "[parameters('location')]",
             "kind": "AzureCLI",
-            "identity": "[parameters('identity')]",
             "properties": {
-                "AzCliVersion": "2.15.0",
+                "AzCliVersion": "2.40.0",
                 "environmentVariables": [
                     {
-                        "name": "CREATE_AAD_CLIENT",
-                        "value": "[and(parameters('createCluster'), or(empty(parameters('aadClientId')), empty(parameters('aadClientSecret')), empty(parameters('aadObjectId')), empty(parameters('rpObjectId'))))]"
+                        "name": "CREATE_CLUSTER",
+                        "value": "[parameters('createCluster')]"
                     },
                     {
-                        "name": "AAD_CLIENT_NAME",
-                        "value": "[variables('const_aadClientName')]"
-                    },
-                    {
-                        "name": "AAD_CLIENT_SECRET",
-                        "secureValue": "[variables('const_aadClientSecret')]"
+                        "name": "CLUSTER_NAME",
+                        "value": "[parameters('clusterName')]"
                     }
                 ],
-                "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('create-sp.sh', parameters('_artifactsLocationSasToken')))]",
+                "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('preflight.sh', parameters('_artifactsLocationSasToken')))]",
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
+            }
+        },
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "name": "[variables('const_identityName')]",
+            "apiVersion": "${azure.apiVersion.userAssignedIdentities}",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deploymentScripts', variables('name_preflightDeploymentScript'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "${azure.apiVersion.roleAssignment}",
+            "name": "[variables('name_roleAssignmentName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[variables('const_contribRole')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName')), '2018-11-30').principalId]",
+                "principalType": "ServicePrincipal"
             }
         },
         {
@@ -246,7 +257,7 @@
             "name": "[variables('name_clusterVNetName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deploymentScripts', variables('name_spDeploymentScript'))]"
+                "[resourceId('Microsoft.Authorization/roleAssignments', variables('name_roleAssignmentName'))]"
             ],
             "properties": {
                 "addressSpace": {
@@ -291,7 +302,7 @@
             ],
             "properties": {
                 "roleDefinitionId": "[variables('const_contribRole')]",
-                "principalId": "[if(and(parameters('createCluster'), empty(parameters('aadObjectId'))), reference(variables('name_spDeploymentScript')).outputs.appSpObjectId, parameters('aadObjectId'))]"
+                "principalId": "[parameters('aadObjectId')]"
             }
         },
         {
@@ -304,7 +315,7 @@
             ],
             "properties": {
                 "roleDefinitionId": "[variables('const_contribRole')]",
-                "principalId": "[if(and(parameters('createCluster'), empty(parameters('rpObjectId'))), reference(variables('name_spDeploymentScript')).outputs.aroRpSpObjectId, parameters('rpObjectId'))]"
+                "principalId": "[parameters('rpObjectId')]"
             }
         },
         {
@@ -328,8 +339,8 @@
                     "serviceCidr": "172.30.0.0/16"
                 },
                 "servicePrincipalProfile": {
-                    "clientId": "[if(and(parameters('createCluster'), empty(parameters('aadClientId'))), reference(variables('name_spDeploymentScript')).outputs.appClientId, parameters('aadClientId'))]",
-                    "clientSecret": "[variables('const_aadClientSecret')]"
+                    "clientId": "[parameters('aadClientId')]",
+                    "clientSecret": "[parameters('aadClientSecret')]"
                 },
                 "masterProfile": {
                     "vmSize": "[parameters('vmSize')]",
@@ -366,7 +377,14 @@
                 "[resourceId('Microsoft.RedHatOpenShift/openShiftClusters', variables('name_clusterName'))]"
             ],
             "kind": "AzureCLI",
-            "identity": "[parameters('identity')]",
+            "identity": {
+                "value": {
+                    "type": "UserAssigned",
+                    "userAssignedIdentities": {
+                        "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName')))]": {}
+                    }
+                }
+            },
             "properties": {
                 "AzCliVersion": "2.15.0",
                 "arguments": "[concat(variables('const_arguments1'), variables('const_arguments2'))]",
