@@ -173,7 +173,8 @@
         "name_clusterName": "[if(parameters('createCluster'), concat('cluster', variables('const_suffix')), parameters('clusterName'))]",
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
         "name_deploymentScriptName": "[concat('aroscript', variables('const_suffix'))]",
-        "name_roleAssignmentName": "[guid(format('Role assignment in group{0}', resourceGroup().id))]"
+        "name_roleAssignmentName": "[guid(format('{0}{1}Role assignment in group{0}', resourceGroup().id, variables('ref_identityId')))]",
+        "ref_identityId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
     },
     "resources": [
         {
@@ -219,7 +220,7 @@
             ],
             "properties": {
                 "roleDefinitionId": "[variables('const_contribRole')]",
-                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName')), '2018-11-30').principalId]",
+                "principalId": "[reference(variables('ref_identityId')).principalId]",
                 "principalType": "ServicePrincipal"
             }
         },
