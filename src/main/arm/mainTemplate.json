@@ -173,7 +173,6 @@
         "name_clusterName": "[if(parameters('createCluster'), concat('cluster', variables('const_suffix')), parameters('clusterName'))]",
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
         "name_deploymentScriptName": "[concat('aroscript', variables('const_suffix'))]",
-        "name_preflightDeploymentScript": "[concat('preflightscript', variables('const_suffix'))]",
         "name_roleAssignmentName": "[guid(format('Role assignment in group{0}', resourceGroup().id))]"
     },
     "resources": [
@@ -206,36 +205,10 @@
             }
         },
         {
-            "type": "Microsoft.Resources/deploymentScripts",
-            "apiVersion": "${azure.apiVersion.deploymentScript}",
-            "name": "[variables('name_preflightDeploymentScript')]",
-            "location": "[parameters('location')]",
-            "kind": "AzureCLI",
-            "properties": {
-                "AzCliVersion": "2.40.0",
-                "environmentVariables": [
-                    {
-                        "name": "CREATE_CLUSTER",
-                        "value": "[parameters('createCluster')]"
-                    },
-                    {
-                        "name": "CLUSTER_NAME",
-                        "value": "[parameters('clusterName')]"
-                    }
-                ],
-                "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('preflight.sh', parameters('_artifactsLocationSasToken')))]",
-                "cleanupPreference": "OnSuccess",
-                "retentionInterval": "P1D"
-            }
-        },
-        {
             "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
             "name": "[variables('const_identityName')]",
             "apiVersion": "${azure.apiVersion.userAssignedIdentities}",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deploymentScripts', variables('name_preflightDeploymentScript'))]"
-            ]
+            "location": "[parameters('location')]"
         },
         {
             "type": "Microsoft.Authorization/roleAssignments",
