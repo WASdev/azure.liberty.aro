@@ -351,11 +351,9 @@
             ],
             "kind": "AzureCLI",
             "identity": {
-                "value": {
-                    "type": "UserAssigned",
-                    "userAssignedIdentities": {
-                        "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName')))]": {}
-                    }
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName')))]": {}
                 }
             },
             "properties": {
