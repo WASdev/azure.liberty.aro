@@ -225,13 +225,33 @@
             },
             {
                 "name": "Application",
-                "label": "Configure application",
+                "label": "Operator and application",
                 "subLabel": {
-                    "preValidation": "Provide required info for application",
+                    "preValidation": "Provide required info for Operator and application",
                     "postValidation": "Done"
                 },
-                "bladeTitle": "Configure application",
+                "bladeTitle": "Operator and application",
                 "elements": [
+                    {
+                        "name": "deployWLO",
+                        "type": "Microsoft.Common.OptionsGroup",
+                        "label": "IBM supported?",
+                        "defaultValue": "No",
+                        "toolTip": "Select 'Yes' if your deployments are to be supported under existing WebSphere entitlements (this includes supported deployments of Open Liberty). Select 'Yes' if you are deploying WebSphere Liberty under the Trial license terms. Select 'No' if you are deploying Open Liberty unsupported.",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "Yes",
+                                    "value": "true"
+                                },
+                                {
+                                    "label": "No",
+                                    "value": "false"
+                                }
+                            ],
+                            "required": true
+                        }
+                    },
                     {
                         "name": "deployApplication",
                         "type": "Microsoft.Common.OptionsGroup",
@@ -251,6 +271,80 @@
                             ],
                             "required": true
                         }
+                    },
+                    {
+                        "name": "licenseInfo",
+                        "type": "Microsoft.Common.InfoBox",
+                        "options": {
+                            "icon": "Info",
+                            "text": "I accept the terms on the license agreement corresponding to the version of IBM Program in the application container by setting this value to true. See <a href='https://ibm.biz/was-license' target='_blank'>https://ibm.biz/was-license</a> for the license agreement applicable to this IBM Program. You must accept the license for the installation to work."
+                        },
+                        "visible": "[and(bool(steps('Application').deployWLO), bool(steps('Application').deployApplication))]"
+                    },
+                    {
+                        "name": "acceptIBMLicenseAgreement",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Accept license",
+                        "toolTip": "Select to accept the License Agreement.",
+                        "constraints": {
+                            "required": true,
+                            "validationMessage": "The deployment will not proceed unless you accept the License Agreement."
+                        },
+                        "visible": "[and(bool(steps('Application').deployWLO), bool(steps('Application').deployApplication))]"
+                    },
+                    {
+                        "name": "edition",
+                        "type": "Microsoft.Common.OptionsGroup",
+                        "defaultValue": "IBM WebSphere Application Server",
+                        "label": "Edition",
+                        "toolTip": "Product edition",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "IBM WebSphere Application Server",
+                                    "value": "IBM WebSphere Application Server"
+                                },
+                                {
+                                    "label": "IBM WebSphere Application Server Liberty Core",
+                                    "value": "IBM WebSphere Application Server Liberty Core"
+                                },
+                                {
+                                    "label": "IBM WebSphere Application Server Network Deployment",
+                                    "value": "IBM WebSphere Application Server Network Deployment"
+                                }
+                            ],
+                            "required": true
+                        },
+                        "visible": "[and(bool(steps('Application').deployWLO), bool(steps('Application').deployApplication))]"
+                    },
+                    {
+                        "name": "productEntitlementSource",
+                        "type": "Microsoft.Common.OptionsGroup",
+                        "defaultValue": "Standalone",
+                        "label": "Product entitlement source",
+                        "toolTip": "Entitlement source for the product",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "Standalone",
+                                    "value": "Standalone"
+                                },
+                                {
+                                    "label": "IBM WebSphere Hybrid Edition",
+                                    "value": "IBM WebSphere Hybrid Edition"
+                                },
+                                {
+                                    "label": "IBM Cloud Pak for Applications",
+                                    "value": "IBM Cloud Pak for Applications"
+                                },
+                                {
+                                    "label": "IBM WebSphere Application Server Family Edition",
+                                    "value": "IBM WebSphere Application Server Family Edition"
+                                }
+                            ],
+                            "required": true
+                        },
+                        "visible": "[and(bool(steps('Application').deployWLO), bool(steps('Application').deployApplication))]"
                     },
                     {
                         "name": "appImageInfo",
@@ -337,6 +431,9 @@
             "rpObjectId": "[steps('Cluster').createClusterInfo.rpObjectId]",
             "clusterName": "[last(split(steps('Cluster').clusterInfo.clusterSelector.id, '/'))]",
             "clusterRGName": "[last(take(split(steps('Cluster').clusterInfo.clusterSelector.id, '/'), 5))]",
+            "deployWLO": "[bool(steps('Application').deployWLO)]",
+            "edition": "[steps('Application').edition]",
+            "productEntitlementSource": "[steps('Application').productEntitlementSource]",
             "deployApplication": "[bool(steps('Application').deployApplication)]",
             "appImagePath": "[if(equals(steps('Application').appImageInfo.appImageOption, '2'), 'icr.io/appcafe/open-liberty/samples/getting-started', if(equals(steps('Application').appImageInfo.appImageOption, '3'), 'docker.io/ibmcom/websphere-liberty-sample:1.0.0', steps('Application').appImageInfo.appImagePath))]",
             "appReplicas": "[int(steps('Application').appLoadBalancingInfo.appReplicas)]"

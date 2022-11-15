@@ -12,15 +12,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
+apiVersion: liberty.websphere.ibm.com/v1
+kind: WebSphereLibertyApplication
 metadata:
-  name: open-liberty-certified
-  namespace: openshift-operators
+  name: ${Application_Name}
+  namespace: ${Project_Name}
 spec:
-  channel: beta2
-  installPlanApproval: Automatic
-  name: open-liberty-certified
-  source: certified-operators
-  sourceNamespace: openshift-marketplace
-  startingCSV: open-liberty-operator.v0.8.0
+  license:
+    accept: true
+    edition: ${WLA_Edition}
+    metric: ${WLA_Metric}
+    productEntitlementSource: ${WLA_Product_Entitlement_Source}
+  replicas: ${Application_Replicas}
+  applicationImage: ${Application_Image}
+  pullPolicy: Always
+  manageTLS: false
+  expose: true

@@ -12,15 +12,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+# Reference https://www.ibm.com/docs/en/cloud-paks/1.0?topic=clusters-adding-operator-catalog
 apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
+kind: CatalogSource
 metadata:
-  name: open-liberty-certified
-  namespace: openshift-operators
+  name: ibm-operator-catalog
+  namespace: openshift-marketplace
+  annotations:
+    olm.catalogImageTemplate: "icr.io/cpopen/ibm-operator-catalog:v{kube_major_version}.{kube_minor_version}"
 spec:
-  channel: beta2
-  installPlanApproval: Automatic
-  name: open-liberty-certified
-  source: certified-operators
-  sourceNamespace: openshift-marketplace
-  startingCSV: open-liberty-operator.v0.8.0
+  displayName: IBM Operator Catalog
+  publisher: IBM
+  sourceType: grpc
+  image: docker.io/ibmcom/ibm-operator-catalog:latest
+  updateStrategy:
+    registryPoll:
+      interval: 45m

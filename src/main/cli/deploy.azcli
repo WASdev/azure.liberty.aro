@@ -21,26 +21,29 @@ IFS=$'\n\t'
 # -o: prevents errors in a pipeline from being masked
 # IFS new value is less likely to cause confusing bugs when looping arrays or arguments (e.g. $@)
 
-usage() { echo "Usage: $0 -n <deploymentName> -p <pullSecretFile> -c <aadClientId> -s <aadClientSecret> -a <aadObjectId> -r <rpObjectId> -i <subscriptionId> -g <resourceGroupName> -l <resourceGroupLocation>" 1>&2; exit 1; }
+usage() { echo "Usage: $0 -n <deploymentName> -p <pullSecretFile> -t <pullSecretEncoded> -c <aadClientId> -s <aadClientSecret> -a <aadObjectId> -r <rpObjectId> -g <resourceGroupName> -l <resourceGroupLocation>" 1>&2; exit 1; }
 
 declare deploymentName=""
 declare pullSecretFile=""
+declare pullSecretEncoded=""
 declare aadClientId=""
 declare aadClientSecret=""
 declare aadObjectId=""
 declare rpObjectId=""
-declare subscriptionId=""
 declare resourceGroupName=""
 declare resourceGroupLocation=""
 
 # Initialize parameters specified from command line
-while getopts ":n:p:i:g:l:c:s:a:r:" arg; do
+while getopts ":n:p:t:i:g:l:c:s:a:r:" arg; do
 	case "${arg}" in
 		n)
 			deploymentName=${OPTARG}
 			;;
 		p)
 			pullSecretFile=${OPTARG}
+			;;
+		t)
+			pullSecretEncoded=${OPTARG}
 			;;
 		c)
 			aadClientId=${OPTARG}
@@ -53,9 +56,6 @@ while getopts ":n:p:i:g:l:c:s:a:r:" arg; do
 			;;
 		r)
 			rpObjectId=${OPTARG}
-			;;
-		i)
-			subscriptionId=${OPTARG}
 			;;
 		g)
 			resourceGroupName=${OPTARG}
@@ -71,13 +71,6 @@ shift $((OPTIND-1))
 if [[ -z "$deploymentName" ]]; then
 	echo "Enter a name for this deployment:"
 	read deploymentName
-fi
-
-if [[ -z "$subscriptionId" ]]; then
-	echo "Your subscription ID can be looked up with the CLI using: az account show --out json "
-	echo "Enter your subscription ID:"
-	read subscriptionId
-	[[ "${subscriptionId:?}" ]]
 fi
 
 if [[ -z "$resourceGroupName" ]]; then
@@ -96,8 +89,8 @@ if [[ -z "$resourceGroupLocation" ]]; then
 	read resourceGroupLocation
 fi
 
-if [ -z "$deploymentName" ] || [ -z "$subscriptionId" ] || [ -z "$resourceGroupName" ]; then
-	echo "Either one of deploymentName, subscriptionId and resourceGroupName is empty"
+if [ -z "$deploymentName" ] || [ -z "$resourceGroupName" ]; then
+	echo "Either one of deploymentName and resourceGroupName is empty"
 	usage
 fi
 
@@ -124,9 +117,6 @@ if [ $? != 0 ]; then
 	az login
 fi
 
-# set the default subscription id
-az account set --subscription $subscriptionId
-
 set +e
 
 # Check for existing RG
@@ -144,9 +134,12 @@ else
 fi
 resourceGroupLocation=$( az group show --name $resourceGroupName | jq -r '.location' )
 
-# Read pull secret
+# Read pull secret file
 if [ -f "$pullSecretFile" ]; then
 	pullSecret=$( cat "$pullSecretFile" | jq -c '.' )
+# Set as empty if pull secret string is not provided either
+elif [ -n "$pullSecretEncoded" ]; then
+	pullSecret=$( echo $pullSecretEncoded | base64 -d | jq -c '.' )
 else
 	pullSecret="{}"
 fi
@@ -155,6 +148,8 @@ fi
 parametersJson=$( cat $parametersFilePath | jq '.parameters' )
 createCluster=$( echo $parametersJson | jq '.createCluster.value' | sed 's/"//g' )
 parametersJson=$( echo $parametersJson | jq --argjson createCluster "$createCluster" '.createCluster.value = $createCluster' )
+deployWLO=$( echo $parametersJson | jq '.deployWLO.value' | sed 's/"//g' )
+parametersJson=$( echo $parametersJson | jq --argjson deployWLO "$deployWLO" '.deployWLO.value = $deployWLO' )
 deployApplication=$( echo $parametersJson | jq '.deployApplication.value' | sed 's/"//g' )
 parametersJson=$( echo $parametersJson | jq --argjson deployApp "$deployApplication" '.deployApplication.value = $deployApp' )
 appReplicas=$( echo $parametersJson | jq '.appReplicas.value' | sed 's/"//g' )

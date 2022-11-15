@@ -42,7 +42,8 @@ wait_login_complete() {
 wait_subscription_created() {
     subscriptionName=$1
     namespaceName=$2
-    logFile=$3
+    deploymentYaml=$3
+    logFile=$4
 
     cnt=0
     oc get packagemanifests -n openshift-marketplace | grep -q ${subscriptionName}
@@ -60,7 +61,7 @@ wait_subscription_created() {
     done
 
     cnt=0
-    oc apply -f open-liberty-operator-subscription.yaml >> $logFile
+    oc apply -f ${deploymentYaml} >> $logFile
     while [ $? -ne 0 ]
     do
         if [ $cnt -eq $MAX_RETRIES ]; then
@@ -71,7 +72,7 @@ wait_subscription_created() {
 
         echo "Failed to create the operator subscription ${subscriptionName}, retry ${cnt} of ${MAX_RETRIES}..." >> $logFile
         sleep 5
-        oc apply -f open-liberty-operator-subscription.yaml >> $logFile
+        oc apply -f ${deploymentYaml} >> $logFile
     done
 
     cnt=0
@@ -274,15 +275,25 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# Install Open Liberty Operator
-wait_subscription_created open-liberty-certified openshift-operators ${logFile}
+operatorDeploymentName=
+if [ "$DEPLOY_WLO" = False ]; then
+    # Install Open Liberty Operator
+    operatorDeploymentName=olo-controller-manager
+    wait_subscription_created open-liberty-certified openshift-operators open-liberty-operator-subscription.yaml ${logFile}
+else
+    # Add the IBM operator catalog
+    wait_resource_applied catalog-source.yaml $logFile
+    # Install WebSphere Liberty Operator
+    operatorDeploymentName=wlo-controller-manager
+    wait_subscription_created ibm-websphere-liberty openshift-operators websphere-liberty-operator-subscription.yaml ${logFile}
+fi
 if [[ $? -ne 0 ]]; then
-  echo "Failed to install the Open Liberty Operator from the OperatorHub." >&2
+  echo "Failed to install the Open/WebSphere Liberty Operator from the OperatorHub." >&2
   exit 1
 fi
-wait_deployment_complete olo-controller-manager openshift-operators ${logFile}
+wait_deployment_complete ${operatorDeploymentName} openshift-operators ${logFile}
 if [[ $? -ne 0 ]]; then
-  echo "The Open Liberty Operator is not available." >&2
+  echo "The Open/WebSphere Liberty Operator is not available." >&2
   exit 1
 fi
 
@@ -294,6 +305,17 @@ if [[ $? -ne 0 ]]; then
 fi
 oc project $Project_Name
 
+# Choose right template
+appDeploymentTemplate=open-liberty-application.yaml.template
+if [ "$DEPLOY_WLO" = True ]; then
+    appDeploymentTemplate=websphere-liberty-application.yaml.template
+fi
+
+appDeploymentFile=liberty-application.yaml
+export WLA_Edition="${WLA_EDITION}"
+export WLA_Product_Entitlement_Source="${WLA_PRODUCT_ENTITLEMENT_SOURCE}"
+export WLA_Metric="${WLA_METRIC}"
+
 # Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then
     # Import container image to the built-in container registry of the OpenShift cluster
@@ -303,19 +325,19 @@ if [ "$deployApplication" = True ]; then
         exit 1
     fi
 
-    # Deploy open liberty application and output its base64 encoded deployment yaml file content
-    envsubst < "open-liberty-application.yaml.template" > "open-liberty-application.yaml"
-    appDeploymentYaml=$(cat open-liberty-application.yaml | base64)
-    wait_resource_applied open-liberty-application.yaml $logFile
+    # Deploy Open/WebSphere Liberty application and output its base64 encoded deployment yaml file content
+    envsubst < "$appDeploymentTemplate" > "$appDeploymentFile"
+    appDeploymentYaml=$(cat $appDeploymentFile | base64)
+    wait_resource_applied $appDeploymentFile $logFile
     if [[ $? != 0 ]]; then
-        echo "Failed to create OpenLibertyApplication defined in open-liberty-application.yaml." >&2
+        echo "Failed to create Open/WebSphere Liberty application." >&2
         exit 1
     fi
 
     # Wait until the application deployment completes
     wait_deployment_complete ${Application_Name} ${Project_Name} ${logFile}
     if [[ $? != 0 ]]; then
-        echo "The OpenLibertyApplication ${Application_Name} is not available." >&2
+        echo "The Open/WebSphere Liberty application ${Application_Name} is not available." >&2
         exit 1
     fi
 
@@ -329,7 +351,13 @@ if [ "$deployApplication" = True ]; then
     echo "appEndpoint is ${appEndpoint}"
 else
     # Output base64 encoded deployment template yaml file content
-    appDeploymentYaml=$(cat open-liberty-application.yaml.template | sed -e "s/\${Project_Name}/${Project_Name}/g" -e "s/\${Application_Replicas}/${Application_Replicas}/g" | base64)
+    appDeploymentYaml=$(cat $appDeploymentTemplate \
+        | sed -e "s/\${Project_Name}/${Project_Name}/g" \
+        | sed -e "s/\${Application_Replicas}/${Application_Replicas}/g" \
+        | sed -e "s#\${WLA_Edition}#${WLA_Edition}#g" \
+        | sed -e "s#\${WLA_Product_Entitlement_Source}#${WLA_Product_Entitlement_Source}#g" \
+        | sed -e "s#\${WLA_Metric}#${WLA_Metric}#g" \
+        | base64)
 fi
 
 # Write outputs to deployment script output path

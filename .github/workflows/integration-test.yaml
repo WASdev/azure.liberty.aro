@@ -1,0 +1,173 @@
+name: integration-test
+on:
+  workflow_dispatch:
+    inputs:
+      deployWLO:
+        description: 'WebSphere Liberty Operator'
+        required: true
+        type: boolean
+        default: false
+      deployApplication:
+        description: 'Sample application'
+        required: true
+        type: boolean
+        default: true
+      deleteAzureResources:
+        description: 'Delete Azure resources at the end'
+        required: true
+        type: boolean
+        default: true
+  # Allows you to run this workflow using GitHub workflow dispatch APIs
+  # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
+  # REPO_NAME=WASdev/azure.liberty.aro
+  # Enable/disable WebSphere Liberty Operator and sample application. Keep/delete Azure resources at the end.
+  # curl --verbose -XPOST -u "WASdev:${PERSONAL_ACCESS_TOKEN}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/${REPO_NAME}/actions/workflows/integration-test.yaml/dispatches --data '{"ref": "main", "inputs":{"deployWLO": "true|false", "deployApplication": "true|false", "deleteAzureResources": "true|false"}}'
+  repository_dispatch:
+    types: [integration-test]
+  # Allows you to run this workflow using GitHub repository dispatch APIs
+  # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
+  # REPO_NAME=WASdev/azure.liberty.aro
+  # Enable/disable WebSphere Liberty Operator and sample application. Keep/delete Azure resources at the end.
+  # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "integration-test", "client_payload": {"deployWLO": true|false, "deployApplication": true|false, "deleteAzureResources": true|false}}'
+env:
+  repoName: "azure.liberty.aro"
+  azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
+  userName: ${{ secrets.USER_NAME }}
+  uamiId: ${{ secrets.UAMI_ID }}
+  pullSecretEncoded: ${{ secrets.PULL_SECRET_ENCODED }}
+  msTeamsWebhook: ${{ secrets.MSTEAMS_WEBHOOK }}
+  testResourceGroup: libertyAroTestRG${{ github.run_id }}${{ github.run_number }}
+  testDeploymentName: libertyAroTestDeployment${{ github.run_id }}${{ github.run_number }}
+  location: eastus
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get versions of external dependencies
+        run: |
+          curl -Lo external-deps-versions.properties https://raw.githubusercontent.com/Azure/azure-javaee-iaas/main/external-deps-versions.properties
+          source external-deps-versions.properties
+          echo "azCliVersion=${AZ_CLI_VERSION}" >> $GITHUB_ENV
+          echo "bicepVersion=${BICEP_VERSION}" >> $GITHUB_ENV
+          echo "refArmttk=${ARM_TTK_REFERENCE}" >> $GITHUB_ENV
+          echo "refJavaee=${AZURE_JAVAEE_IAAS_REFERENCE}" >> $GITHUB_ENV
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Checkout azure-javaee-iaas
+        uses: actions/checkout@v2
+        with:
+          repository: Azure/azure-javaee-iaas
+          path: azure-javaee-iaas
+          ref: ${{ env.refJavaee }}
+      - name: Checkout arm-ttk
+        uses: actions/checkout@v2
+        with:
+          repository: Azure/arm-ttk
+          path: arm-ttk
+          ref: ${{ env.refArmttk }}
+      - name: Checkout ${{ env.repoName }}
+        uses: actions/checkout@v2
+        with:
+          path: ${{ env.repoName }}
+          ref: ${{ github.event.inputs.ref }}
+      - name: Build azure-javaee-iaas
+        run: mvn -DskipTests clean install --file azure-javaee-iaas/pom.xml
+      - name: Build ${{ env.repoName }}
+        run: |
+          deployWLO=false
+          if ${{ inputs.deployWLO == true || github.event.client_payload.deployWLO == true }}; then
+            deployWLO=true
+          fi
+          deployApplication=false
+          if ${{ inputs.deployApplication == true || github.event.client_payload.deployApplication == true }}; then
+            deployApplication=true
+          fi
+          echo "deployApplication=${deployApplication}" >> $GITHUB_ENV
+          cd ${{ env.repoName }}
+          mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME -DidentityId=${{ env.uamiId }} -DcreateCluster=true \
+            -DdeployWLO=${deployWLO} -Dedition="IBM WebSphere Application Server" -DproductEntitlementSource="Standalone" \
+            -DdeployApplication=${deployApplication} -DappImagePath=icr.io/appcafe/open-liberty/samples/getting-started -DappReplicas=2 \
+            -Dtest.args="-Test All" -Passembly -Ptemplate-validation-tests clean install
+      - uses: azure/login@v1
+        id: azure-login
+        with:
+          creds: ${{ env.azureCredentials }}
+      - name: Start the deployment
+        run: |
+          cd ${{ env.repoName }}/target/cli
+          chmod a+x deploy.azcli
+          ./deploy.azcli -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} -l ${{ env.location }} -t ${{ env.pullSecretEncoded }}
+      - name: Verify the deployment
+        run: |
+          clusterName=$(az deployment group show -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} --query 'properties.outputs.clusterName.value' -o tsv)
+          appEndpoint=$(az resource show -n aroscript${clusterName:7} -g ${{ env.testResourceGroup }} --resource-type Microsoft.Resources/deploymentScripts --query "properties.outputs.appEndpoint" -o tsv)
+          echo "appEndpoint: ${appEndpoint}"
+          if [[ $deployApplication == "true" ]]; then
+            if [[ -z "$appEndpoint" ]]; then
+              echo "Invalid value of appEndpoint: ${appEndpoint}"
+              exit 1
+            fi
+            curl --verbose --connect-timeout 60 --max-time 180 --retry 10 --retry-delay 30 --retry-max-time 180 --retry-connrefused $appEndpoint
+            if [[ $? -ne 0 ]]; then
+              echo "Failed to access ${appEndpoint}."
+              exit 1
+            fi
+          elif [[ -n "$appEndpoint" ]]; then
+            echo "Invalid value of appEndpoint: ${appEndpoint}"
+            exit 1
+          fi
+      - name: Debugging with tmate if verification failed
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+      - name: Delete all Azure resources
+        id: delete-resources-in-group
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deleteAzureResources) || (github.event_name == 'repository_dispatch' && github.event.client_payload.deleteAzureResources) }}
+        uses: azure/CLI@v1
+        with:
+          azcliversion: ${{ env.azCliVersion }}
+          inlineScript: |
+            az group delete -n ${{ env.testResourceGroup }} --yes
+      - name: Generate artifact file name and path
+        id: artifact_file
+        run: |
+          version=$(awk '/<version>[^<]+<\/version>/{gsub(/<version>|<\/version>/,"",$1);print $1;exit;}' ${{ env.repoName }}/pom.xml)
+          artifactName=${{ env.repoName }}-$version-arm-assembly
+          unzip ${{ env.repoName }}/target/$artifactName.zip -d ${{ env.repoName }}/target/$artifactName
+          echo "##[set-output name=artifactName;]${artifactName}"
+          echo "##[set-output name=artifactPath;]${{ env.repoName }}/target/$artifactName"
+      - name: Archive ${{ env.repoName }} template
+        uses: actions/upload-artifact@v1
+        if: success()
+        with:
+          name: ${{steps.artifact_file.outputs.artifactName}}
+          path: ${{steps.artifact_file.outputs.artifactPath}}
+  notification:
+    needs: integration-test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output inputs from workflow_dispatch
+        run: echo "${{ toJSON(github.event.inputs) }}"
+      - name: Output client_payload from repository_dispatch
+        run: echo "${{ toJSON(github.event.client_payload) }}"
+      - name: Send notification
+        if: ${{ env.msTeamsWebhook != 'NA' }}
+        run: |
+            workflowJobs=$(curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ env.userName }}/${{ env.repoName }}/actions/runs/${{ github.run_id }}/jobs)
+            successIntegrationTestJob=$(echo $workflowJobs | jq '.jobs | map(select(.name=="integration-test" and .conclusion=="success")) | length')
+            if (($successIntegrationTestJob == 0));then
+                echo "Job integration-test failed, send notification to Teams"
+                curl ${{ env.msTeamsWebhook }} \
+                -H 'Content-Type: application/json' \
+                --data-binary @- << EOF
+                {
+                "@context":"http://schema.org/extensions",
+                "@type":"MessageCard",
+                "text":"Workflow integration-test of repo ${{ env.repoName }} failed, please take a look at: https://github.com/${{ env.userName }}/${{ env.repoName }}/actions/runs/${{ github.run_id }}"
+                }
+            EOF
+            else
+                echo "Job integration-test succeeded."
+            fi
