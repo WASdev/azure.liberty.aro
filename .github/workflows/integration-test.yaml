@@ -101,6 +101,9 @@ jobs:
           clientSecret=$(echo $servicePrincipal | jq -r '.clientSecret')
           aadObjectId=$(az ad sp show --id ${clientId} --query id -o tsv)
           rpObjectId=$(az ad sp list --display-name "Azure Red Hat OpenShift RP" --query [0].id -o tsv)
+          # Wait 30s for service principal available after creation. 
+          # See https://github.com/WASdev/azure.liberty.aro/issues/59.
+          sleep 30
           cd ${{ env.repoName }}/target/cli
           chmod a+x deploy.azcli
           ./deploy.azcli -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} -l ${{ env.location }} -t ${{ env.pullSecretEncoded }} \
