@@ -135,7 +135,7 @@
                                 "type": "Microsoft.Common.InfoBox",
                                 "options": {
                                     "icon": "Info",
-                                    "text": "An Azure Active Directory service principal is required for cluster creation. You can generate one with command <b>az ad sp create-for-rbac --sdk-auth</b>. From the output of the command execution,<br> <li>copy the value of <b>clientId</b> and paste it for text box <b>Service principal client ID</b></li><li>copy the value of <b>clientSecret</b> and paste it for text box <b>Service principal client secret</b></li>"
+                                    "text": "An Azure Active Directory service principal is required for cluster creation. For more information on creating a service principal, consult the <a href='https://aka.ms/aro/sp-docs' target='_blank'>linked product documentation</a>. Alternatively, you can generate one with command <b>az ad sp create-for-rbac --sdk-auth</b>. From the output of the command execution,<br> <li>copy the value of <b>clientId</b> and paste it for text box <b>Service principal client ID</b></li><li>copy the value of <b>clientSecret</b> and paste it for text box <b>Service principal client secret</b></li>"
                                 }
                             },
                             {
