@@ -74,7 +74,6 @@ if $USE_GITHUB_CLI; then
     msg "${GREEN}Using the GitHub CLI to remove secrets.${NOFORMAT}"
     gh ${GH_FLAGS} secret remove AZURE_CREDENTIALS
     gh ${GH_FLAGS} secret remove USER_NAME
-    gh ${GH_FLAGS} secret remove UAMI_ID
     gh ${GH_FLAGS} secret remove PULL_SECRET_ENCODED
     gh ${GH_FLAGS} secret remove MSTEAMS_WEBHOOK
     msg "${GREEN}Secrets removed"
@@ -90,7 +89,6 @@ if [ $USE_GITHUB_CLI == false ]; then
   msg "(in ${YELLOW}yellow the secret name)"
   msg "${YELLOW}\"AZURE_CREDENTIALS\""
   msg "${YELLOW}\"USER_NAME\""
-  msg "${YELLOW}\"UAMI_ID\""
   msg "${YELLOW}\"PULL_SECRET_ENCODED\""
   msg "${YELLOW}\"MSTEAMS_WEBHOOK\""
   msg "${NOFORMAT}========================================================================"

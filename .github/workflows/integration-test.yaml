@@ -33,7 +33,6 @@ env:
   repoName: "azure.liberty.aro"
   azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
   userName: ${{ secrets.USER_NAME }}
-  uamiId: ${{ secrets.UAMI_ID }}
   pullSecretEncoded: ${{ secrets.PULL_SECRET_ENCODED }}
   msTeamsWebhook: ${{ secrets.MSTEAMS_WEBHOOK }}
   testResourceGroup: libertyAroTestRG${{ github.run_id }}${{ github.run_number }}
@@ -86,7 +85,7 @@ jobs:
           fi
           echo "deployApplication=${deployApplication}" >> $GITHUB_ENV
           cd ${{ env.repoName }}
-          mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME -DidentityId=${{ env.uamiId }} -DcreateCluster=true \
+          mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME -DcreateCluster=true \
             -DdeployWLO=${deployWLO} -Dedition="IBM WebSphere Application Server" -DproductEntitlementSource="Standalone" \
             -DdeployApplication=${deployApplication} -DappImagePath=icr.io/appcafe/open-liberty/samples/getting-started -DappReplicas=2 \
             -Dtest.args="-Test All" -Passembly -Ptemplate-validation-tests clean install
@@ -96,9 +95,19 @@ jobs:
           creds: ${{ env.azureCredentials }}
       - name: Start the deployment
         run: |
+          servicePrincipal=$(az ad sp create-for-rbac --sdk-auth)
+          clientId=$(echo $servicePrincipal | jq -r '.clientId')
+          echo "clientId=${clientId}" >> $GITHUB_ENV
+          clientSecret=$(echo $servicePrincipal | jq -r '.clientSecret')
+          aadObjectId=$(az ad sp show --id ${clientId} --query id -o tsv)
+          rpObjectId=$(az ad sp list --display-name "Azure Red Hat OpenShift RP" --query [0].id -o tsv)
+          # Wait 30s for service principal available after creation. 
+          # See https://github.com/WASdev/azure.liberty.aro/issues/59.
+          sleep 30
           cd ${{ env.repoName }}/target/cli
           chmod a+x deploy.azcli
-          ./deploy.azcli -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} -l ${{ env.location }} -t ${{ env.pullSecretEncoded }}
+          ./deploy.azcli -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} -l ${{ env.location }} -t ${{ env.pullSecretEncoded }} \
+            -c ${clientId} -s ${clientSecret} -a ${aadObjectId} -r ${rpObjectId}
       - name: Verify the deployment
         run: |
           clusterName=$(az deployment group show -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} --query 'properties.outputs.clusterName.value' -o tsv)
@@ -129,6 +138,7 @@ jobs:
           azcliversion: ${{ env.azCliVersion }}
           inlineScript: |
             az group delete -n ${{ env.testResourceGroup }} --yes
+            az ad app delete --id ${clientId}
       - name: Generate artifact file name and path
         id: artifact_file
         run: |

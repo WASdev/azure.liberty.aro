@@ -5,14 +5,6 @@
         "_artifactsLocation": {
             "value": "${artifactsLocationBase}/src/main/"
         },
-        "identity": {
-            "value": {
-                "type": "userAssigned",
-                "userAssignedIdentities": {
-                    "${identityId}": {}
-                }
-            }
-        },
         "createCluster": {
             "value": "${createCluster}"
         },

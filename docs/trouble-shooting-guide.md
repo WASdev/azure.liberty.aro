@@ -1,29 +1,3 @@
-## Check the permissions of user-assigned managed identity
-
-The offer depends on a user-assigned managed identity to facilitate the deployment:
-
-1. Create service principal and get Object IDs;
-1. Access the cluster, create VM, etc.
-
-So, the following permissions must be granted to the selected user-assigned managed identity before kicking off the deployment:
-
-1. **Contributor** role in the subscription
-1. **Application administrator** role in Azure AD
-
-The instructions on how to create the user-assigned managed identity and grant required permissions can be found in the UI of the offer:
-
-![Instructions on grant required permissions to the selected user-assigned managed identity](./media/trouble-shooting-guide/uami-required-permissions.png)
-
-You can follow steps below to verify if permissions are correctly granted to the user-assigned managed identity (reach out to your tenant administrator if you don’t have privilege to check):
-
-1. Check **Contributor** role in the subscription is added:
-   1. Open the selected user-assigned managed identity > Click **Azure role assignments**. Check **Contributor** role is listed in your subscription.
-
-      ![Contributor role in the subscription is granted to the selected user-assigned managed identity](./media/trouble-shooting-guide/contributor-in-subscription.png)
-
-1. Check Application administrator role in Azure AD is added:
-   1. Open home page of Azure portal > Type **Azure Active Directory** in the search box and click to open > Click Roles and administrators > Click Application administrator > Check the selected user-assigned managed identity is listed.
-
 ## Inspect the runtime log
 
 The runtime log of the primary deployment script is stored in the Azure storage account which is mounted to the Azure container instance. Both Azure storage account and Azure container instance are created by the Azure deployment script at runtime. However, they will be removed immediately once the deployment script successfully completed. 

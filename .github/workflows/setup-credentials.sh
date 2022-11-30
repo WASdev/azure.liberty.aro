@@ -27,9 +27,6 @@ DISAMBIG_PREFIX=
 USER_NAME=
 # Owner/reponame, e.g., <USER_NAME>/azure.liberty.aro
 OWNER_REPONAME=
-# Id of the uami, e.g., /subscriptions/<sub-id>/resourcegroups/<rg-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<uami-name>.
-# The uami must have a Contributor role in the subscription and an Application administrator role in Azure AD.
-UAMI_ID=
 # The base64 encoded pull secret text.
 # See https://learn.microsoft.com/en-us/azure/openshift/tutorial-create-cluster?WT.mc_id=Portal-fx#get-a-red-hat-pull-secret-optional to obtain the pull secret from the Red Hat OpenShift Cluster Manager website.
 # Run "echo '<pull-secret-text>' | base64 -w0" to encode the pull secret.
@@ -88,11 +85,6 @@ else
     GH_FLAGS="--repo ${OWNER_REPONAME}"
 fi
 
-# get UAMI_ID if not set at the beginning of this file
-if [ "$UAMI_ID" == '' ] ; then
-    read -r -p "Enter Id of the uami in the format '/subscriptions/<sub-id>/resourcegroups/<rg-name>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<uami-name>' (The uami must have a Contributor role in the subscription and an Application administrator role in Azure AD): " UAMI_ID
-fi
-
 # get PULL_SECRET_ENCODED if not set at the beginning of this file
 if [ "$PULL_SECRET_ENCODED" == '' ] ; then
     read -r -p "Enter the base64 encoded pull secret text (See https://learn.microsoft.com/en-us/azure/openshift/tutorial-create-cluster?WT.mc_id=Portal-fx#get-a-red-hat-pull-secret-optional to obtain the pull secret from the Red Hat OpenShift Cluster Manager website. Then run \"echo '<pull-secret-text>' | base64 -w0\" to encode the pull secret): " PULL_SECRET_ENCODED
@@ -145,8 +137,14 @@ SERVICE_PRINCIPAL=$(az ad sp create-for-rbac --name ${SERVICE_PRINCIPAL_NAME} --
 msg "${YELLOW}\"DISAMBIG_PREFIX\""
 msg "${GREEN}${DISAMBIG_PREFIX}"
 
+# Assign User Access Administrator role in the subscription
 SP_ID=$(az ad sp list --display-name $SERVICE_PRINCIPAL_NAME --query [0].id -o tsv)
 az role assignment create --assignee ${SP_ID} --role "User Access Administrator"
+
+# Assign Application Administrator role in the Azure AD
+az rest -m POST \
+  --uri 'https://graph.microsoft.com/v1.0/directoryRoles/roleTemplateId=9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3/members/$ref' \
+  --body "{\"@odata.id\":\"https://graph.microsoft.com/v1.0/directoryObjects/${SP_ID}\"}"
 
 # Create GitHub action secrets
 AZURE_CREDENTIALS=$(echo $SERVICE_PRINCIPAL | base64 -d)
@@ -159,7 +157,6 @@ if $USE_GITHUB_CLI; then
     msg "${YELLOW}\"AZURE_CREDENTIALS\""
     msg "${GREEN}${AZURE_CREDENTIALS}"
     gh ${GH_FLAGS} secret set USER_NAME -b"${USER_NAME}"
-    gh ${GH_FLAGS} secret set UAMI_ID -b"${UAMI_ID}"
     gh ${GH_FLAGS} secret set PULL_SECRET_ENCODED -b"${PULL_SECRET_ENCODED}"
     gh ${GH_FLAGS} secret set MSTEAMS_WEBHOOK -b"${MSTEAMS_WEBHOOK}"
     msg "${GREEN}Secrets configured"
@@ -177,8 +174,6 @@ if [ $USE_GITHUB_CLI == false ]; then
   msg "${GREEN}${AZURE_CREDENTIALS}"
   msg "${YELLOW}\"USER_NAME\""
   msg "${GREEN}${USER_NAME}"
-  msg "${YELLOW}\"UAMI_ID\""
-  msg "${GREEN}${UAMI_ID}"
   msg "${YELLOW}\"PULL_SECRET_ENCODED\""
   msg "${GREEN}${PULL_SECRET_ENCODED}"
   msg "${YELLOW}\"MSTEAMS_WEBHOOK\""
