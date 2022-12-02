@@ -173,6 +173,7 @@
         "name_clusterName": "[if(parameters('createCluster'), concat('cluster', variables('const_suffix')), parameters('clusterName'))]",
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
         "name_deploymentScriptName": "[concat('aroscript', variables('const_suffix'))]",
+        "name_preflightDSName": "[concat('preflight', variables('const_suffix'))]",
         "name_roleAssignmentName": "[guid(format('{0}{1}Role assignment in group{0}', resourceGroup().id, variables('ref_identityId')))]",
         "ref_identityId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
     },
@@ -225,13 +226,35 @@
             }
         },
         {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "${azure.apiVersion.deploymentScript}",
+            "name": "[variables('name_preflightDSName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Authorization/roleAssignments', variables('name_roleAssignmentName'))]"
+            ],
+            "kind": "AzureCLI",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName')))]": {}
+                }
+            },
+            "properties": {
+                "AzCliVersion": "2.41.0",
+                "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('preflight.sh', parameters('_artifactsLocationSasToken')))]",
+                "cleanupPreference": "OnSuccess",
+                "retentionInterval": "P1D"
+            }
+        },
+        {
            "condition": "[parameters('createCluster')]",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "${azure.apiVersion.virtualNetworks}",
             "name": "[variables('name_clusterVNetName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Authorization/roleAssignments', variables('name_roleAssignmentName'))]"
+                "[resourceId('Microsoft.Resources/deploymentScripts', variables('name_preflightDSName'))]"
             ],
             "properties": {
                 "addressSpace": {
