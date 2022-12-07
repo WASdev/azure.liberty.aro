@@ -243,6 +243,16 @@
             "properties": {
                 "AzCliVersion": "2.41.0",
                 "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('preflight.sh', parameters('_artifactsLocationSasToken')))]",
+                "environmentVariables": [
+                    {
+                        "name": "AAD_CLIENT_ID",
+                        "value": "[parameters('aadClientId')]"
+                    },
+                    {
+                        "name": "AAD_OBJECT_ID",
+                        "value": "[parameters('aadObjectId')]"
+                    }
+                ],
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
             }
