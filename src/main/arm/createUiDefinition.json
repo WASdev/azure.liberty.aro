@@ -135,7 +135,7 @@
                                 "type": "Microsoft.Common.InfoBox",
                                 "options": {
                                     "icon": "Info",
-                                    "text": "An Azure Active Directory service principal is required for cluster creation. For more information on creating a service principal, consult the <a href='https://aka.ms/aro/sp-docs' target='_blank'>Azure Red Hat OpenShift product documentation</a>.<br><br>For your convenience, you can create the service principal using the following Azure CLI command with a local install or an Azure Cloud Shell. Copy the value of the <b>clientId</b> and <b>clientSecret</b> output from the following command into the corresponding fields. <b>az ad sp create-for-rbac --sdk-auth</b>."
+                                    "text": "An Azure Active Directory service principal is required for cluster creation. For more information on creating a service principal, consult the <a href='https://aka.ms/aro/sp-docs' target='_blank'>Azure Red Hat OpenShift product documentation</a>.<br><br>For your convenience, you can create the service principal using the following Azure CLI command with a local install or an Azure Cloud Shell. Copy the value of the <b>clientId</b> and <b>clientSecret</b> output from the following command into the corresponding fields below. <br></br><code><b>out=sp-$(date +%s).json && az ad sp create-for-rbac --sdk-auth > ${out} && sleep 30 && cat ${out} | tr -d '\",' && rm -rf ${out}</b></code> <!-- https://github.com/WASdev/azure.liberty.aro/issues/79 -->"
                                 }
                             },
                             {
@@ -167,7 +167,7 @@
                                 "name": "UserSPGraphRequest",
                                 "type": "Microsoft.Solutions.GraphApiControl",
                                 "toolTip": "Obtain the objectId of the service principal",
-                                "condition": "[greater(length(steps('Cluster').createClusterInfo.aadClientId), 0)]",
+                                "condition": "[not(empty(steps('Cluster').createClusterInfo.aadClientId))]",
                                 "request": {
                                     "method": "GET",
                                     "path": "[concat('v1.0/servicePrincipals?$filter=appId eq \\'', steps('Cluster').createClusterInfo.aadClientId, '\\'')]",
