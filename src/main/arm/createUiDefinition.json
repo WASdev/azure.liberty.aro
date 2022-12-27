@@ -397,24 +397,17 @@
                         "visible": "[bool(steps('Application').deployApplication)]"
                     },
                     {
-                        "name": "appLoadBalancingInfo",
-                        "type": "Microsoft.Common.Section",
-                        "label": "Load balancing",
-                        "elements": [
-                            {
-                                "name": "appReplicas",
-                                "type": "Microsoft.Common.Slider",
-                                "min": 1,
-                                "max": 20,
-                                "label": "Number of application replicas",
-                                "defaultValue": 2,
-                                "showStepMarkers": false,
-                                "toolTip": "The number of application replicas to deploy.",
-                                "constraints": {
-                                    "required": true
-                                }
-                            }
-                        ],
+                        "name": "appReplicas",
+                        "type": "Microsoft.Common.Slider",
+                        "min": 1,
+                        "max": 20,
+                        "label": "Number of application replicas",
+                        "defaultValue": 2,
+                        "showStepMarkers": false,
+                        "toolTip": "The number of application replicas to deploy.",
+                        "constraints": {
+                            "required": true
+                        },
                         "visible": "[bool(steps('Application').deployApplication)]"
                     }
                 ]
@@ -435,7 +428,7 @@
             "productEntitlementSource": "[steps('Application').productEntitlementSource]",
             "deployApplication": "[bool(steps('Application').deployApplication)]",
             "appImagePath": "[if(equals(steps('Application').appImageInfo.appImageOption, '2'), 'icr.io/appcafe/open-liberty/samples/getting-started', if(equals(steps('Application').appImageInfo.appImageOption, '3'), 'docker.io/ibmcom/websphere-liberty-sample:1.0.0', steps('Application').appImageInfo.appImagePath))]",
-            "appReplicas": "[int(steps('Application').appLoadBalancingInfo.appReplicas)]"
+            "appReplicas": "[int(steps('Application').appReplicas)]"
         }
     }
 }
