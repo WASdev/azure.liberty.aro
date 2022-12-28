@@ -84,12 +84,12 @@
         "steps": [
             {
                 "name": "Cluster",
-                "label": "Configure cluster",
+                "label": "ARO",
                 "subLabel": {
                     "preValidation": "Provide required info for cluster configuration",
                     "postValidation": "Done"
                 },
-                "bladeTitle": "Configure cluster",
+                "bladeTitle": "ARO",
                 "elements": [
                     {
                         "name": "createCluster",
