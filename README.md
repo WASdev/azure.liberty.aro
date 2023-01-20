@@ -64,7 +64,7 @@ The offer provisions the following Azure resources and a WebSphere Liberty Opera
 * Network resources
   * A virtual network and two subnets.
 * Key software components
-  * A WebSphere Liberty Operator version 1.1.0 or Open Liberty Operator version 0.8.2 installed and running on the ARO cluster, per user selection.
+  * A WebSphere Liberty Operator version 1.1.0 or Open Liberty Operator version 0.8.1 installed and running on the ARO cluster, per user selection.
   * An WebSphere Liberty or Open Liberty application deployed and running on the ARO cluster, per user selection:
     * User can select to deploy an application or not.
     * User can deploy own application or a sample application.
