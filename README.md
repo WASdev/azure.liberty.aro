@@ -49,3 +49,23 @@
    1. Navigate to "Deployments > specified_deployment_name > Outputs"
    1. To visit Red Hat OpenShift Container Platform web console: copy value of property `clusterConsoleUrl` > browse it in your browser and sign in with cluster project manager credentials you specified in cluster configuration
    1. To visit application deployed to the ARO 4 cluster: copy value of property `appEndpoint` > append context root defined in the 'server.xml' of your application if it's not equal to '/' > open it in your browser
+
+## Deployment Description
+
+The offer provisions the following Azure resources and a WebSphere Liberty Operator or Open Liberty Operator.
+
+* Computing resources
+  * Azure Red Hat OpenShift (ARO) cluster
+     * Dynamically created ARO cluster with
+       * Red Hat pull secrets.
+       * Service principal client ID.
+       * Service principal client secret.
+     * You can also choose to deploy into a pre-existing ARO cluster.
+* Network resources
+  * A virtual network and two subnets.
+* Key software components
+  * A WebSphere Liberty Operator version 1.1.0 or Open Liberty Operator version 0.8.1 installed and running on the ARO cluster, per user selection.
+  * An WebSphere Liberty or Open Liberty application deployed and running on the ARO cluster, per user selection:
+    * User can select to deploy an application or not.
+    * User can deploy own application or a sample application.
+    * User need to provide additional entitlement info to deploy the application if a WebSphere Liberty Operator (IBM supported) is deployed.
