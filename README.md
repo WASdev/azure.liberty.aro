@@ -52,7 +52,7 @@
 
 ## Deployment Description
 
-The offer provisions the following Azure resources and a WebSphere Liberty Operator or Open Liberty Operator.
+The offer provisions the WebSphere Liberty Operator or Open Liberty Operator and supporting Azure resources.
 
 * Computing resources
   * Azure Red Hat OpenShift (ARO) cluster
