@@ -163,8 +163,11 @@ jobs:
         if: ${{ env.msTeamsWebhook != 'NA' }}
         run: |
             workflowJobs=$(curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ env.userName }}/${{ env.repoName }}/actions/runs/${{ github.run_id }}/jobs)
-            successIntegrationTestJob=$(echo $workflowJobs | jq '.jobs | map(select(.name=="integration-test" and .conclusion=="success")) | length')
-            if (($successIntegrationTestJob == 0));then
+            successIntegrationTestJob=$(echo $workflowJobs | jq 'select(.jobs != null) | .jobs | map(select(.name=="integration-test" and .conclusion=="success")) | length')
+            echo "$successIntegrationTestJob"
+            if [ -z $successIntegrationTestJob ];then
+              echo "jobs not retrieved."
+            elif (($successIntegrationTestJob == 0));then
                 echo "Job integration-test failed, send notification to Teams"
                 curl ${{ env.msTeamsWebhook }} \
                 -H 'Content-Type: application/json' \
