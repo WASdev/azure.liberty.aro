@@ -1,43 +1,45 @@
 <h1>Name</h1>
-<p></p>
+<p>IBM WebSphere Liberty and Open Liberty on Azure Red Hat OpenShift</p>
 <h1>Search results summary</h1>
-<p></p>
+<p>Run IBM WebSphere Liberty and Open Liberty on Azure Red Hat OpenShift</p>
 <h1>Short description</h1>
-<p></p>
+<p>Run IBM WebSphere Liberty or Open Liberty on Azure Red Hat OpenShift (ARO) leveraging the Liberty Operator.</p>
 <h1>Description</h1>
-<p>The offer provisions the WebSphere Liberty Operator or Open Liberty Operator and supporting Azure resources.</p>
+<p>Part of the WebSphere family of products, WebSphere Liberty and Open Liberty are next generation Java platforms and
+are important to cloud modernization of mission critical enterprise Java workloads. Open Liberty is the production-ready,
+open-source base for WebSphere Liberty. Sharing the same core implementation, both offerings are fast, lightweight, modular, and
+container-friendly cloud native runtimes with robust support for industry standards such as Java EE, Jakarta EE, and MicroProfile.</p>
+<p>This solution automates most boilerplate steps to provision WebSphere Liberty or Open Liberty on an Azure Red Hat OpenShift (ARO)
+cluster. Once initial provisioning is complete, you are completely free to customize deployments further. The solution is jointly
+developed by IBM and Microsoft.</p>
+<p>The following resources are automatically provisioned by the offer.</p>
 <ul>
-<li>Computing resources<ul>
-<li>Azure Red Hat OpenShift (ARO) cluster<ul>
-<li>Dynamically created ARO cluster with<ul>
-<li>Red Hat pull secrets.</li>
-<li>Service principal client ID.</li>
-<li>Service principal client secret.</li>
+  <li>ARO cluster (alternatively, you can deploy to an existing ARO cluster)</li>
+  <li>OpenShift Container Registry (OCR) enabled</li>
+  <li>Liberty Operator</li>
+  <li>Secure OpenShift namespace to contain your application</li>
+  <li>Sample getting started application - optional</li>
+  <li>Custom application deployment - optional</li>
+  <li>Virtual network and two subnets</li>
 </ul>
-</li>
-<li>You can also choose to deploy into a pre-existing ARO cluster.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Network resources<ul>
-<li>A virtual network and two subnets.</li>
-</ul>
-</li>
-<li>Key software components<ul>
-<li>A WebSphere Liberty Operator version 1.1.0 or Open Liberty Operator version 0.8.1 installed and running on the ARO cluster, per user selection.</li>
-<li>An WebSphere Liberty or Open Liberty application deployed and running on the ARO cluster, per user selection:<ul>
-<li>User can select to deploy an application or not.</li>
-<li>User can deploy own application or a sample application.</li>
-<li>User need to provide additional entitlement info to deploy the application if a WebSphere Liberty Operator (IBM supported) is deployed.</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>This offer automatically provisions several Azure resources to quickly move to IBM WebSphere Liberty or Open Liberty on Azure Red Hat OpenShift (ARO). The provisioned resources include virtual networks, an ARO cluster, along with the OpenShift Container Registry (OCR), and the Liberty Operator. A secure OpenShift namespace is set up to contain your application. The offer can also deploy Open Liberty or WebSphere Liberty Container (e.g., Docker) images. After initial provisioning, you can focus on deploying your Liberty application to ARO.</p>
 <p>ARO requires a minimum of 40 cores to create and run an OpenShift cluster. Please ensure your subscription has sufficient quota.</p>
-<p>This offer is Bring-Your-Own-License, and assumes you have sufficient entitlements. WebSphere Liberty is available as a limited Trial option before entitlement is required. Open Liberty is open source and free to use unsupported. You can also use Open Liberty supported through WebSphere Liberty entitlements. When using WebSphere Liberty or Open Liberty supported, usage should be tracked using the <a href="https://github.com/IBM/ibm-licensing-operator">License Service Operator</a>. </p>
-<p>IBM and Microsoft also provide basic step-by-step guidance on getting started with <a href="https://docs.microsoft.com/en-us/azure/openshift/howto-deploy-java-liberty-app">Liberty and ARO</a>. The guidance is suitable for customers that wish to remain as close as possible to a native OpenShift manual provisioning experience instead of using the offer.</p>
-<p><b>WebSphere Solutions Overview</b><br>The IBM WebSphere product portfolio is a set of industry-leading runtimes powering some of the most mission critical enterprise applications around the world. The WebSphere portfolio includes the traditional WebSphere Application Server, and the lightweight WebSphere Liberty, and Open Liberty runtimes.</p>
-<p>WebSphere products are key components in enabling enterprise Java workloads on Azure. IBM and Microsoft are collaborating on solutions for the product family. Other offers include WebSphere Application Server (Traditional) on VMs, and OpenLiberty/WebSphere Liberty on the Azure Kubernetes Service (AKS).</p><p>If you want to provide feedback on these offers, stay updated on the roadmap, or work closely on your migration scenarios with the engineering team developing these offers, select the CONTACT ME button on the marketplace <a href="https://aka.ms/websphere-on-azure-contactme">offer overview</a> page. The opportunity to collaborate on a migration scenario is free while the offers are under active development.</p><p>The currently available offers are listed in the Learn More section at the bottom of the <a href="https://aka.ms/websphere-on-azure-contactme">overview page</a>.</p>
+<p>This offer is Bring-Your-Own-License, and assumes you have sufficient entitlements. WebSphere Liberty is available as a limited
+Trial option before entitlement is required. Open Liberty is open source and free to use unsupported. You can also use OpenLiberty
+supported through WebSphere Liberty entitlements. When using WebSphere Liberty or Open Liberty supported, usage should be tracked
+using the <a href="https://github.com/IBM/ibm-licensing-operator">License Service Operator</a>.</p>
+<p>IBM and Microsoft also provide basic step-by-step instructions on getting started with Liberty and ARO without automated
+provisioning.</p>
+<p>IBM and Microsoft provide similar solutions targeting WebSphere (traditional) on Azure VMs (single instance or cluster),
+and Liberty on the Azure Kubernetes Service (AKS). These options are linked in the <i>Learn more</i> section below.</p>
+<p><i>You can reach out to the engineering team developing these offers by clicking the CONTACT ME button on the
+<a href="https://ibm.biz/WebSphereOnAzureContactMe">marketplace
+WebSphere on Azure overview</a> page. Program managers, architects and engineers will get in touch and can assist you for free with
+your Azure migration.</i></p>
+<h2>Links</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/developer/java/ee/websphere-family">WebSphere on Azure</a></li>
+<li><a href="https://ibm.biz/WebSphereOnAzureContactMe">WebSphere on Azure Marketplace Overview</a></li>
+<li><a href="">WebSphere Single Instance on an Azure VM</a></li>
+<li><a href="">WebSphere Cluster on Azure VMs</a></li>
+<li><a href="">WebSphere Liberty/Open Liberty on AKS</a></li>
+</ul>
