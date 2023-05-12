@@ -13,6 +13,12 @@ on:
   # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "package"}'
 env:
   repoName: "azure.liberty.aro"
+  offerId: "20210823-liberty-aro"
+  planId: "liberty-aro"
+  clientId: ${{ secrets.CLIENT_ID }}
+  secretValue: ${{ secrets.SECRET_VALUE }}
+  tenantId: ${{ secrets.TENANT_ID }}
+  offerType: 'application_offer'
 
 jobs:
   package:
@@ -60,9 +66,22 @@ jobs:
           unzip ${{ env.repoName }}/target/$artifactName.zip -d ${{ env.repoName }}/target/$artifactName
           echo "##[set-output name=artifactName;]${artifactName}"
           echo "##[set-output name=artifactPath;]${{ env.repoName }}/target/$artifactName"
+          echo "##[set-output name=artifactVersion;]${version}"
       - name: Archive ${{ env.repoName }} template
         uses: actions/upload-artifact@v1
         if: success()
         with:
           name: ${{steps.artifact_file.outputs.artifactName}}
           path: ${{steps.artifact_file.outputs.artifactPath}}
+      - name: Update offer artifact
+        uses: microsoft/microsoft-partner-center-github-action@v3
+        if: ${{ github.repository_owner  == 'WASdev' }}
+        with:
+          offerId: ${{ env.offerId }}
+          planId: ${{ env.planId }}
+          filePath: ${{ env.repoName }}/target/${{steps.artifact_file.outputs.artifactName}}.zip 
+          artifactVersion: ${{steps.artifact_file.outputs.artifactVersion}}
+          clientId: ${{ env.clientId }}
+          secretValue: ${{ env.secretValue }}
+          tenantId: ${{ env.tenantId }}
+          offerType: ${{ env.offerType }}
