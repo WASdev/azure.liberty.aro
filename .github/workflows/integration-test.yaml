@@ -124,9 +124,6 @@ jobs:
             echo "Invalid value of appEndpoint: ${appEndpoint}"
             exit 1
           fi
-      - name: Debugging with tmate if verification failed
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
       - name: Delete all Azure resources
         id: delete-resources-in-group
         if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deleteAzureResources) || (github.event_name == 'repository_dispatch' && github.event.client_payload.deleteAzureResources) }}

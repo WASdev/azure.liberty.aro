@@ -125,9 +125,7 @@
                                 },
                                 "toolTip": "The pull secret text that you obtained from the Red Hat OpenShift Cluster Manager website.<br><br>To get pull secret text, see <a href='https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#get-a-red-hat-pull-secret-optional' target='_blank'>Get a Red Hat pull secret</a>.",
                                 "constraints": {
-                                    "required": true,
-                                    "regex": "^.{8,}$",
-                                    "validationMessage": "A valid Red Hat pull secret is required."
+                                    "required": true
                                 }
                             },
                             {
@@ -158,9 +156,7 @@
                                 },
                                 "toolTip": "The client secret of an existing service principal",
                                 "constraints": {
-                                    "required": true,
-                                    "regex": "^.{8,}$",
-                                    "validationMessage": "A valid client secret is required."
+                                    "required": true
                                 }
                             },
                             {
