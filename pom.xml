@@ -35,7 +35,6 @@
     <properties>
         <git.repo>WASdev</git.repo>
         <artifactsLocationBase>https://raw.githubusercontent.com/${git.repo}/${project.artifactId}/${git.tag}</artifactsLocationBase>
-        <test.parameters>-TestParameter '@{&quot;PasswordMinLength&quot;=6}'</test.parameters>
         <azure.apiVersion.deployments>2021-04-01</azure.apiVersion.deployments>
         <azure.apiVersion.virtualNetworks>2022-05-01</azure.apiVersion.virtualNetworks>
         <azure.apiVersion.vNetRoleAssignment>2018-09-01-preview</azure.apiVersion.vNetRoleAssignment>
