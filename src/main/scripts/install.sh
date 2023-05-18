@@ -305,10 +305,12 @@ if [[ $? -ne 0 ]]; then
 fi
 oc project $Project_Name
 
-# Choose right template
+# Choose right template & protocol
 appDeploymentTemplate=open-liberty-application.yaml.template
+protocol=https
 if [ "$DEPLOY_WLO" = True ]; then
     appDeploymentTemplate=websphere-liberty-application.yaml.template
+    protocol=http
 fi
 
 appDeploymentFile=liberty-application.yaml
@@ -364,7 +366,7 @@ fi
 result=$(jq -n -c --arg consoleUrl $consoleUrl '{consoleUrl: $consoleUrl}')
 result=$(echo "$result" | jq --arg appDeploymentYaml "$appDeploymentYaml" '{"appDeploymentYaml": $appDeploymentYaml} + .')
 if [ "$deployApplication" = True ]; then
-    result=$(echo "$result" | jq --arg appEndpoint "$appEndpoint" '{"appEndpoint": $appEndpoint} + .')
+    result=$(echo "$result" | jq --arg appEndpoint "$protocol://$appEndpoint" '{"appEndpoint": $appEndpoint} + .')
 fi
 echo "Result is: $result" >> $logFile
 echo $result > $AZ_SCRIPTS_OUTPUT_PATH

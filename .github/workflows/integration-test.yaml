@@ -115,8 +115,9 @@ jobs:
               echo "Invalid value of appEndpoint: ${appEndpoint}"
               exit 1
             fi
-            curl --verbose --connect-timeout 60 --max-time 180 --retry 10 --retry-delay 30 --retry-max-time 180 --retry-connrefused $appEndpoint
-            if [[ $? -ne 0 ]]; then
+            httpCode=$(curl --verbose --connect-timeout 60 --max-time 180 --retry 10 --retry-delay 30 --retry-max-time 180 --retry-connrefused --write-out '%{http_code}' --silent --output /dev/null $appEndpoint)
+            echo "http_code is $httpCode"
+            if [ "$httpCode" -ne 200 ]; then
               echo "Failed to access ${appEndpoint}."
               exit 1
             fi
