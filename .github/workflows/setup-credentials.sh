@@ -133,7 +133,11 @@ USE_GITHUB_CLI=false
 # Create service principal with Contributor role in the subscription
 msg "${GREEN}(3/4) Create service principal ${SERVICE_PRINCIPAL_NAME}"
 SUBSCRIPTION_ID=$(az account show --query id --output tsv --only-show-errors)
-SERVICE_PRINCIPAL=$(az ad sp create-for-rbac --name ${SERVICE_PRINCIPAL_NAME} --role="Contributor" --scopes="/subscriptions/${SUBSCRIPTION_ID}" --sdk-auth --only-show-errors | base64 -w0)
+w0=-w0
+if [[ $OSTYPE == 'darwin'* ]]; then
+  w0=
+fi
+SERVICE_PRINCIPAL=$(az ad sp create-for-rbac --name ${SERVICE_PRINCIPAL_NAME} --role="Contributor" --scopes="/subscriptions/${SUBSCRIPTION_ID}" --sdk-auth --only-show-errors | base64 $w0)
 msg "${YELLOW}\"DISAMBIG_PREFIX\""
 msg "${GREEN}${DISAMBIG_PREFIX}"
 
