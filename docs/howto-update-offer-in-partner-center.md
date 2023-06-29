@@ -1,3 +1,6 @@
+<!-- Copyright (c) Microsoft Corporation. -->
+<!-- Copyright (c) IBM Corporation. -->
+
 # How to update IBM WebSphere Liberty and Open Liberty on Azure Red Hat OpenShift solution template offer in partner center
 
 Please follow sections below in order to update the solution template offer in partner center.

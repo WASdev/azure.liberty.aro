@@ -1,3 +1,6 @@
+<!-- Copyright (c) Microsoft Corporation. -->
+<!-- Copyright (c) IBM Corporation. -->
+
 # Related Repositories
 
 * [tWAS cluster on Azure VMs](https://github.com/WASdev/azure.websphere-traditional.cluster)
