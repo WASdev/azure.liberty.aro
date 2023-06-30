@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#      Copyright (c) IBM Corporation.
+#      Copyright (c) Microsoft Corporation.
 ################################################
 # This script is invoked by a human who:
 # - has done az login.

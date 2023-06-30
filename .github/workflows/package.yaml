@@ -1,3 +1,5 @@
+# Copyright (c) IBM Corporation.
+# Copyright (c) Microsoft Corporation.
 name: Package ARM
 on:
   workflow_dispatch:

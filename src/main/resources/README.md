@@ -1,3 +1,6 @@
+<!-- Copyright (c) Microsoft Corporation. -->
+<!-- Copyright (c) IBM Corporation. -->
+
 # What is this stuff?
 
 - Content that required to create an Azure application offer from [Commerical Marketplace Overview](https://partner.microsoft.com/en-us/dashboard/commercial-marketplace/overview) -> New Offer > Azure Application
