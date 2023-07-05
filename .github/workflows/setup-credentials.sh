@@ -159,11 +159,15 @@ msg "${GREEN}(4/4) Create secrets in GitHub"
 if $USE_GITHUB_CLI; then
   {
     msg "${GREEN}Using the GitHub CLI to set secrets.${NOFORMAT}"
+    msg "${GREEN}debug: AZURE_CREDENTIALS ${AZURE_CREDENTIALS}"      
     gh ${GH_FLAGS} secret set AZURE_CREDENTIALS -b"${AZURE_CREDENTIALS}"
     msg "${YELLOW}\"AZURE_CREDENTIALS\""
     msg "${GREEN}${AZURE_CREDENTIALS}"
+    msg "${GREEN}debug: USER_NAME ${USER_NAME}"
     gh ${GH_FLAGS} secret set USER_NAME -b"${USER_NAME}"
+    msg "${GREEN}debug: PULL_SECRET_ENCODED ${PULL_SECRET_ENCODED}"
     gh ${GH_FLAGS} secret set PULL_SECRET_ENCODED -b"${PULL_SECRET_ENCODED}"
+    msg "${GREEN}debug: MSTEAMS_WEBHOOK ${MSTEAMS_WEBHOOK}"
     gh ${GH_FLAGS} secret set MSTEAMS_WEBHOOK -b"${MSTEAMS_WEBHOOK}"
     msg "${GREEN}Secrets configured"
   } || {
