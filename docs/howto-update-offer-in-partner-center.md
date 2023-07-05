@@ -5,6 +5,24 @@
 
 Please follow sections below in order to update the solution template offer in partner center.
 
+## Preconditions
+
+### 1. Set the GitHub Actions secrets for the repository running the workflows
+
+The recommended way to set the secrets is to run the scripts.  Setting the secrets manually is beyond the scope of this guide.
+
+#### Preconditions for running the scripts to set the secrets
+
+1. Ensure the Azure CLI is installed on a supported UNIX-like environment. See [How to install the Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli). **Sign in to Azure using the Azure CLI**. After installation, sign in to the correct tenant. The actions will create Azure resources in this signed-in tenant.
+1. Ensure the GitHub CLI is installed on the same environment as the preceding step. See [Installation](https://cli.github.com/manual/installation). Note: If working on macOS, we highly recommend Homebrew. Visit https://brew.sh/ for instructions on installing Homebrew. **Authenticate to GitHub**. After installation, use `gh auth login` to sign in to GitHub. You'll need a sufficiently empowered `PERSONAL ACCESS TOKEN` for this repository.
+1. Clone this repository into the environment from the preceding steps.
+
+#### Setting the secrets
+
+1. cd `.github/workflows`
+1. Run the `setup-credentials.sh` script. This will ask you a series of questions and create the necessary GitHub Actions secrets using the `gh` cli. If this script exits successfully, you should be able to run the workflows successfully. If the script does not exit successfully, troubleshoot and resolve the problem before proceeding.
+   Note, the script `tear-down-credentials.sh` is the inverse of `setup-credentials.sh`. It deletes any Azure service principals and roles and any GitHub Actions secrets.
+
 ## When should I update the offer in partner center?
 
 If you make any changes for files located in the following path:
