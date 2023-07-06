@@ -95,7 +95,7 @@ fi
 
 # get PULL_SECRET_ENCODED if not set at the beginning of this file
 if [ "$PULL_SECRET_ENCODED" == '' ] ; then
-    read -r -p "Enter the base64 encoded pull secret text (See https://learn.microsoft.com/en-us/azure/openshift/tutorial-create-cluster?WT.mc_id=Portal-fx#get-a-red-hat-pull-secret-optional to obtain the pull secret from the Red Hat OpenShift Cluster Manager website. Then run \"echo '<pull-secret-text>' | base64 -w0\" for Linux or \"echo '<pull-secret-text>' | base64\" for MacOS to encode the pull secret): " PULL_SECRET_ENCODED
+    read -n 4096 -r -p "Enter the base64 encoded pull secret text (See https://learn.microsoft.com/en-us/azure/openshift/tutorial-create-cluster?WT.mc_id=Portal-fx#get-a-red-hat-pull-secret-optional to obtain the pull secret from the Red Hat OpenShift Cluster Manager website. Then run \"echo '<pull-secret-text>' | base64 -w0\" for Linux or \"echo '<pull-secret-text>' | base64\" for MacOS to encode the pull secret): " PULL_SECRET_ENCODED
 fi
 
 # get CLIENT_ID if not set at the beginning of this file
