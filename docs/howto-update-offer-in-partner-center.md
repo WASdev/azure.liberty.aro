@@ -34,10 +34,14 @@ If you make any changes for files located in the following path:
 
 ## Update the version of the solution template
 
-If you haven't bumped the version, pls do so before publishing the solution template to partner center. 
+If you haven't incremented the version, pls do so before publishing the solution template to partner center. 
 
 1. Increase the [version number](https://github.com/WASdev/azure.liberty.aro/blob/main/pom.xml#L23) which is specified in the `pom.xml`.
 1. Get the PR merged.
+
+## How do I increment the version of the open-liberty-operator installed by the offer?
+
+- Modify the file `src/main/scripts/open-liberty-operator-subscription.yaml` and increment the value of the property `startingCSV` according to the existing pattern in that property value.
 
 ## Run integration test workflow to verify the changes
 
