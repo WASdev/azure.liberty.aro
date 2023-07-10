@@ -41,7 +41,8 @@ If you haven't incremented the version, pls do so before publishing the solution
 
 ## How do I increment the version of the open-liberty-operator installed by the offer?
 
-- Modify the file `src/main/scripts/open-liberty-operator-subscription.yaml` and increment the value of the property `startingCSV` according to the existing pattern in that property value.
+- The version pattern is `Major.Minor.Patch`. Normally the new patch is automatically installed for the specified `Major.Minor` in the property `channel` from the file `src/main/scripts/open-liberty-operator-subscription.yaml`. If the new patch failed to be installed automatcially (see [this](https://github.com/WASdev/azure.liberty.aro/pull/97#issuecomment-1626388789) as an example), please follow [this commit](https://github.com/WASdev/azure.liberty.aro/pull/97/commits/14058d802bacba0099e3d4c7e7e8961a0cc1330e) to manually increment the value of the property `startingCSV` according to the existing pattern in that property value.
+- If the new version is released with new `Major.Minor`, please specify the appropriate values for both properties `channel` and `startingCSV` after consulting with Open Liberty Operator team.
 
 ## Run integration test workflow to verify the changes
 
