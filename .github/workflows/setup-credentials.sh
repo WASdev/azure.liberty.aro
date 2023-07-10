@@ -33,6 +33,12 @@ OWNER_REPONAME=
 # See https://learn.microsoft.com/en-us/azure/openshift/tutorial-create-cluster?WT.mc_id=Portal-fx#get-a-red-hat-pull-secret-optional to obtain the pull secret from the Red Hat OpenShift Cluster Manager website.
 # Run "echo '<pull-secret-text>' | base64 -w0" to encode the pull secret.
 PULL_SECRET_ENCODED=
+# Client ID for an Azure AD application registered in the Partner Center
+CLIENT_ID=
+# Secret value of the Azure AD application registered in the Partner Center
+SECRET_VALUE=
+# Tenant ID of the Azure AD application registered in the Partner Center
+TENANT_ID=
 # Optional: Web hook for Microsoft Teams channel
 MSTEAMS_WEBHOOK=
 
@@ -89,7 +95,22 @@ fi
 
 # get PULL_SECRET_ENCODED if not set at the beginning of this file
 if [ "$PULL_SECRET_ENCODED" == '' ] ; then
-    read -r -p "Enter the base64 encoded pull secret text (See https://learn.microsoft.com/en-us/azure/openshift/tutorial-create-cluster?WT.mc_id=Portal-fx#get-a-red-hat-pull-secret-optional to obtain the pull secret from the Red Hat OpenShift Cluster Manager website. Then run \"echo '<pull-secret-text>' | base64 -w0\" to encode the pull secret): " PULL_SECRET_ENCODED
+    read -n 4096 -r -p "Enter the base64 encoded pull secret text (See https://learn.microsoft.com/en-us/azure/openshift/tutorial-create-cluster?WT.mc_id=Portal-fx#get-a-red-hat-pull-secret-optional to obtain the pull secret from the Red Hat OpenShift Cluster Manager website. Then run \"echo '<pull-secret-text>' | base64 -w0\" for Linux or \"echo '<pull-secret-text>' | base64\" for MacOS to encode the pull secret): " PULL_SECRET_ENCODED
+fi
+
+# get CLIENT_ID if not set at the beginning of this file
+if [ "$CLIENT_ID" == '' ] ; then
+    read -r -p "Enter client ID for an Azure AD application registered in the Partner Center: " CLIENT_ID
+fi
+
+# get SECRET_VALUE if not set at the beginning of this file
+if [ "$SECRET_VALUE" == '' ] ; then
+    read -r -p "Enter secret value for the Azure AD application registered in the Partner Center: " SECRET_VALUE
+fi
+
+# get TENANT_ID if not set at the beginning of this file
+if [ "$TENANT_ID" == '' ] ; then
+    read -r -p "Enter tenant ID for the Azure AD application registered in the Partner Center: " TENANT_ID
 fi
 
 # Optional: get MSTEAMS_WEBHOOK if not set at the beginning of this file
@@ -159,11 +180,18 @@ msg "${GREEN}(4/4) Create secrets in GitHub"
 if $USE_GITHUB_CLI; then
   {
     msg "${GREEN}Using the GitHub CLI to set secrets.${NOFORMAT}"
+    msg "${GREEN}debug: AZURE_CREDENTIALS ${AZURE_CREDENTIALS}"      
     gh ${GH_FLAGS} secret set AZURE_CREDENTIALS -b"${AZURE_CREDENTIALS}"
     msg "${YELLOW}\"AZURE_CREDENTIALS\""
     msg "${GREEN}${AZURE_CREDENTIALS}"
+    msg "${GREEN}debug: USER_NAME ${USER_NAME}"
     gh ${GH_FLAGS} secret set USER_NAME -b"${USER_NAME}"
+    msg "${GREEN}debug: PULL_SECRET_ENCODED ${PULL_SECRET_ENCODED}"
     gh ${GH_FLAGS} secret set PULL_SECRET_ENCODED -b"${PULL_SECRET_ENCODED}"
+    gh ${GH_FLAGS} secret set CLIENT_ID -b"${CLIENT_ID}"
+    gh ${GH_FLAGS} secret set SECRET_VALUE -b"${SECRET_VALUE}"
+    gh ${GH_FLAGS} secret set TENANT_ID -b"${TENANT_ID}"
+    msg "${GREEN}debug: MSTEAMS_WEBHOOK ${MSTEAMS_WEBHOOK}"
     gh ${GH_FLAGS} secret set MSTEAMS_WEBHOOK -b"${MSTEAMS_WEBHOOK}"
     msg "${GREEN}Secrets configured"
   } || {
@@ -182,6 +210,12 @@ if [ $USE_GITHUB_CLI == false ]; then
   msg "${GREEN}${USER_NAME}"
   msg "${YELLOW}\"PULL_SECRET_ENCODED\""
   msg "${GREEN}${PULL_SECRET_ENCODED}"
+  msg "${YELLOW}\"CLIENT_ID\""
+  msg "${GREEN}${CLIENT_ID}"
+  msg "${YELLOW}\"SECRET_VALUE\""
+  msg "${GREEN}${SECRET_VALUE}"
+  msg "${YELLOW}\"TENANT_ID\""
+  msg "${GREEN}${TENANT_ID}"
   msg "${YELLOW}\"MSTEAMS_WEBHOOK\""
   msg "${GREEN}${MSTEAMS_WEBHOOK}"
   msg "${NOFORMAT}========================================================================"
