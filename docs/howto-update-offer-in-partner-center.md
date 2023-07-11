@@ -34,10 +34,15 @@ If you make any changes for files located in the following path:
 
 ## Update the version of the solution template
 
-If you haven't bumped the version, pls do so before publishing the solution template to partner center. 
+If you haven't incremented the version, pls do so before publishing the solution template to partner center. 
 
 1. Increase the [version number](https://github.com/WASdev/azure.liberty.aro/blob/main/pom.xml#L23) which is specified in the `pom.xml`.
 1. Get the PR merged.
+
+## How do I increment the version of the open-liberty-operator installed by the offer?
+
+- The version pattern is `Major.Minor.Patch`. Normally the new patch is automatically installed for the specified `Major.Minor` in the property `channel` from the file `src/main/scripts/open-liberty-operator-subscription.yaml`. If the new patch failed to be installed automatcially (see [this](https://github.com/WASdev/azure.liberty.aro/pull/97#issuecomment-1626388789) as an example), please follow [this commit](https://github.com/WASdev/azure.liberty.aro/pull/97/commits/14058d802bacba0099e3d4c7e7e8961a0cc1330e) to manually increment the value of the property `startingCSV` according to the existing pattern in that property value.
+- If the new version is released with new `Major.Minor`, please specify the appropriate values for both properties `channel` and `startingCSV` after consulting with Open Liberty Operator team.
 
 ## Run integration test workflow to verify the changes
 
