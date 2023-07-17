@@ -77,7 +77,6 @@ jobs:
           path: ${{steps.artifact_file.outputs.artifactPath}}
       - name: Update offer artifact
         uses: microsoft/microsoft-partner-center-github-action@v3
-        if: ${{ github.repository_owner  == 'WASdev' }}
         with:
           offerId: ${{ env.offerId }}
           planId: ${{ env.planId }}
