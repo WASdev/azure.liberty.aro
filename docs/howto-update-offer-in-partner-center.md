@@ -37,6 +37,7 @@ If you make any changes for files located in the following path:
 If you haven't incremented the version, pls do so before publishing the solution template to partner center. 
 
 1. Increase the [version number](https://github.com/WASdev/azure.liberty.aro/blob/main/pom.xml#L23) which is specified in the `pom.xml`.
+1. If creating a new Plan, update the `pid` value as described in [How Azure customer usage attribution works in the IBM Partner Center offers](https://github.com/WASdev/azure.websphere-traditional.image/blob/main/docs/howto-update-pids.md).
 1. Get the PR merged.
 
 ## How do I increment the version of the open-liberty-operator installed by the offer?
