@@ -29,3 +29,15 @@ To monitor the deployment process and check the log data, you can inspect the ru
    ![Container instance is terminated and the connection is closed](./media/trouble-shooting-guide/container-instance-terminated.png)
 
 Besides, the Azure storage account and Azure container instance will be kept for one day if the deployment script finished with errors. So, user can inspect the runtime log after the deployment, starting from step #3.
+
+## Download the log file
+
+However, if you want to download the log file into your local computer before the storage account is removed, reference the following steps:
+
+1. Find your resource group where the deployment is located.
+1. Select Deployment Script prefixed with **aroscript**.
+1. Search the web page with keyword **Storage account**, select the storage account you find.
+1. Under **Data storage** in the left navigation panel, select **File shares**. You will see one file share listed. Select it.
+1. Select **Browse** in the left navigation panel. You will see two directories. Select **azscriptinput**.
+1. You will see a list of files. Select **deployment.log** which is the log file you're looking for.
+1. In the pop up **File properties**, select **Download**. The log file will be downloaded to your local computer.
