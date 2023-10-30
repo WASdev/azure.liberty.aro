@@ -38,7 +38,7 @@
         <artifactsLocationBase>https://raw.githubusercontent.com/${git.repo}/${project.artifactId}/${git.tag}</artifactsLocationBase>
         <azure.apiVersion.deployments>2023-07-01</azure.apiVersion.deployments>
         <azure.apiVersion.virtualNetworks>2023-06-01</azure.apiVersion.virtualNetworks>
-        <azure.apiVersion.vNetRoleAssignment>2022-04-01</azure.apiVersion.vNetRoleAssignment>
+        <azure.apiVersion.vNetRoleAssignment>2018-09-01-preview</azure.apiVersion.vNetRoleAssignment>
         <azure.apiVersion.aroCluster>2023-04-01</azure.apiVersion.aroCluster>
         <azure.apiVersion.roleAssignment>2022-04-01</azure.apiVersion.roleAssignment>
         <azure.apiVersion.userAssignedIdentities>2023-01-31</azure.apiVersion.userAssignedIdentities>
