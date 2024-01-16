@@ -267,7 +267,7 @@ consoleUrl=$(az aro show -g $clusterRGName -n $clusterName --query 'consoleProfi
 
 # Install the OpenShift CLI
 downloadUrl=$(echo $consoleUrl | sed -e "s/https:\/\/console/https:\/\/downloads/g")
-wget ${downloadUrl}amd64/linux/oc.tar -q -P ~
+wget --no-check-certificate ${downloadUrl}amd64/linux/oc.tar -q -P ~
 mkdir ~/openshift
 tar xvf ~/oc.tar -C ~/openshift 
 echo 'export PATH=$PATH:~/openshift' >> ~/.bash_profile && source ~/.bash_profile
