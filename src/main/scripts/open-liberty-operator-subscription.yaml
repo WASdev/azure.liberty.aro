@@ -19,9 +19,9 @@ metadata:
   name: open-liberty-certified
   namespace: openshift-operators
 spec:
-  channel: v1.2
+  channel: v1.3
   installPlanApproval: Automatic
   name: open-liberty-certified
   source: certified-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: open-liberty-operator.v1.2.2
+  startingCSV: open-liberty-operator.v1.3.0
