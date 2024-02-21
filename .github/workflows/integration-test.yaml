@@ -43,6 +43,8 @@ env:
 jobs:
   integration-test:
     runs-on: ubuntu-latest
+    outputs:
+      clientId: ${{ steps.deploy.outputs.clientId }}
     steps:
       - name: Get versions of external dependencies
         run: |
@@ -96,10 +98,12 @@ jobs:
         with:
           creds: ${{ env.azureCredentials }}
       - name: Start the deployment
+        id: deploy
         run: |
           servicePrincipal=$(az ad sp create-for-rbac --sdk-auth)
           clientId=$(echo $servicePrincipal | jq -r '.clientId')
           echo "clientId=${clientId}" >> $GITHUB_ENV
+          echo "clientId=${clientId}" >> "$GITHUB_OUTPUT"
           clientSecret=$(echo $servicePrincipal | jq -r '.clientSecret')
           aadObjectId=$(az ad sp show --id ${clientId} --query id -o tsv)
           rpObjectId=$(az ad sp list --display-name "Azure Red Hat OpenShift RP" --query [0].id -o tsv)
@@ -174,7 +178,7 @@ jobs:
             fi
 
   delete-resources:
-    needs: notification
+    needs: [integration-test, notification]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -194,4 +198,4 @@ jobs:
             echo "delete resource group: " ${{ env.testResourceGroup }}
             az group delete -n ${{ env.testResourceGroup }} --yes
             echo "delete app with clientId: " ${clientId}
-            az ad app delete --id ${clientId}
+            az ad app delete --id ${needs.integration-test.outputs.clientId}
