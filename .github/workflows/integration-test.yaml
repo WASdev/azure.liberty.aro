@@ -37,8 +37,8 @@ env:
   userName: ${{ secrets.USER_NAME }}
   pullSecretEncoded: ${{ secrets.PULL_SECRET_ENCODED }}
   msTeamsWebhook: ${{ secrets.MSTEAMS_WEBHOOK }}
-  testResourceGroup: libertyAroTestRG${{ github.run_id }}${{ github.run_number }}
-  testDeploymentName: libertyAroTestDeployment${{ github.run_id }}${{ github.run_number }}
+  testResourceGroup: libertyAroTestRG-${{ github.run_id }}-${{ github.run_number }}
+  testDeploymentName: libertyAroTestDeployment-${{ github.run_id }}-${{ github.run_number }}
   location: eastus
 jobs:
   integration-test:
