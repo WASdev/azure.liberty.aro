@@ -31,7 +31,6 @@ jobs:
           curl -Lo external-deps-versions.properties https://raw.githubusercontent.com/Azure/azure-javaee-iaas/main/external-deps-versions.properties
           source external-deps-versions.properties
           echo "bicepVersion=${BICEP_VERSION}" >> $GITHUB_ENV
-
       - name: Download arm-ttk used in partner center pipeline
         run: |
           wget -O arm-template-toolkit.zip https://aka.ms/arm-ttk-azureapps
@@ -56,7 +55,6 @@ jobs:
         run: |
           echo "MAVEN_USERNAME=${MAVEN_USERNAME}" >> "$GITHUB_ENV"
           echo "MAVEN_TOKEN=${MAVEN_TOKEN}" >> "$GITHUB_ENV"
-
       - name: Build and test ${{ env.repoName }}
         run: |
           cd ${{ env.repoName }}
