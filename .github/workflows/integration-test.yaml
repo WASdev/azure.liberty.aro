@@ -58,7 +58,6 @@ jobs:
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
           server-username: MAVEN_USERNAME # env variable for username
           server-password: MAVEN_TOKEN # env variable for token
-
       - name: Set Maven env
         env:
           MAVEN_USERNAME: github
@@ -67,14 +66,12 @@ jobs:
         run: |
           echo "MAVEN_USERNAME=${MAVEN_USERNAME}" >> "$GITHUB_ENV"
           echo "MAVEN_TOKEN=${MAVEN_TOKEN}" >> "$GITHUB_ENV"
-
       - name: Checkout arm-ttk
         uses: actions/checkout@v2
         with:
           repository: Azure/arm-ttk
           path: arm-ttk
           ref: ${{ env.refArmttk }}
-
       - name: Checkout ${{ env.repoName }}
         uses: actions/checkout@v2
         with:
