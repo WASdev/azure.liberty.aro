@@ -8,7 +8,7 @@ on:
         description: 'Update offer artifact'
         required: true
         type: boolean
-        default: false
+        default: true
   # Allows you to run this workflow using GitHub APIs
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
