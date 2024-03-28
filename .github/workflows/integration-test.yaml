@@ -71,7 +71,6 @@ jobs:
         with:
           repository: Azure/arm-ttk
           path: arm-ttk
-          ref: ${{ env.refArmttk }}
       - name: Checkout ${{ env.repoName }}
         uses: actions/checkout@v2
         with:
