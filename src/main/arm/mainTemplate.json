@@ -174,7 +174,8 @@
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
         "name_deploymentScriptName": "[concat('aroscript', variables('const_suffix'))]",
         "name_preflightDSName": "[concat('preflight', variables('const_suffix'))]",
-        "name_roleAssignmentName": "[guid(format('{0}{1}Role assignment in group{0}', variables('const_clusterRGName'), variables('ref_identityId')))]",
+        "name_roleAssignmentName": "[guid(format('{0}{1}Role assignment in group{0}', resourceGroup().name, variables('ref_identityId')))]",
+        "name_roleAssignmentToCluserRGName": "[guid(format('{0}{1}Role assignment in group{0}', variables('const_clusterRGName'), variables('ref_identityId')))]",
         "ref_identityId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
     },
     "resources": [
@@ -229,7 +230,7 @@
             "condition": "[not(parameters('createCluster'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "${azure.apiVersion.deployments}",
-            "name": "[format('{0}-deployment', variables('name_roleAssignmentName'))]",
+            "name": "[variables('name_roleAssignmentToCluserRGName')]",
             "resourceGroup": "[variables('const_clusterRGName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
@@ -268,7 +269,7 @@
                 },
                 "parameters": {
                     "roleAssignmentName": {
-                        "value": "[format('{0}-roleAssignment', variables('name_roleAssignmentName'))]"
+                        "value": "[variables('name_roleAssignmentToCluserRGName')]"
                     },
                     "contributorRole": {
                         "value": "[variables('const_contribRole')]"
@@ -286,7 +287,7 @@
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Authorization/roleAssignments', variables('name_roleAssignmentName'))]",
-                "[resourceId(variables('const_clusterRGName'), 'Microsoft.Resources/deployments', format('{0}-deployment', variables('name_roleAssignmentName')))]"
+                "[resourceId(variables('const_clusterRGName'), 'Microsoft.Resources/deployments', variables('name_roleAssignmentToCluserRGName'))]"
             ],
             "kind": "AzureCLI",
             "identity": {
