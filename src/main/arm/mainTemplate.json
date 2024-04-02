@@ -220,23 +220,54 @@
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
             ],
             "properties": {
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
                 "mode": "Incremental",
                 "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "roleAssignmentName": {
+                            "type": "string"
+                        },
+                        "scope": {
+                            "type": "string"
+                        },
+                        "contribRole": {
+                            "type": "string"
+                        },
+                        "principalId": {
+                            "type": "string"
+                        }
+                    },
                     "resources": [
                         {
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "${azure.apiVersion.roleAssignment}",
-                            "name": "[variables('name_roleAssignmentName')]",
-                            "scope": "[concat(subscription().id, '/resourceGroups/', variables('const_clusterRGName'))]",
+                            "name": "[parameters('roleAssignmentName')]",
+                            "scope": "[parameters('scope')]",
                             "properties": {
-                                "roleDefinitionId": "[variables('const_contribRole')]",
-                                "principalId": "[reference(variables('ref_identityId')).principalId]",
+                                "roleDefinitionId": "[parameters('contribRole')]",
+                                "principalId": "[parameters('principalId')]",
                                 "principalType": "ServicePrincipal"
                             }
                         }
                     ]
+                },
+                "parameters": {
+                    "roleAssignmentName": {
+                        "value": "[variables('name_roleAssignmentName')]"
+                    },
+                    "scope": {
+                        "value": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('const_clusterRGName'))]"
+                    },
+                    "contribRole": {
+                        "value": "[variables('const_contribRole')]"
+                    },
+                    "principalId": {
+                        "value": "[reference(variables('ref_identityId')).principalId]"
+                    }
                 }
             }
         },
