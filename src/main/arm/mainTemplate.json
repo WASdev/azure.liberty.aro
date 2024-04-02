@@ -213,9 +213,23 @@
             "location": "[parameters('location')]"
         },
         {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "${azure.apiVersion.roleAssignment}",
+            "name": "[variables('name_roleAssignmentName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[variables('const_contribRole')]",
+                "principalId": "[reference(variables('ref_identityId')).principalId]",
+                "principalType": "ServicePrincipal"
+            }
+        },
+        {
+            "condition": "[not(parameters('createCluster'))]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "${azure.apiVersion.deployments}",
-            "name": "roleAssignmentDeployment",
+            "name": "[format('{0}-deployment', variables('name_roleAssignmentName'))]",
             "resourceGroup": "[variables('const_clusterRGName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
@@ -254,7 +268,7 @@
                 },
                 "parameters": {
                     "roleAssignmentName": {
-                        "value": "[variables('name_roleAssignmentName')]"
+                        "value": "[format('{0}-roleAssignment', variables('name_roleAssignmentName'))]"
                     },
                     "contributorRole": {
                         "value": "[variables('const_contribRole')]"
@@ -271,7 +285,8 @@
             "name": "[variables('name_preflightDSName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId(variables('const_clusterRGName'), 'Microsoft.Resources/deployments', 'roleAssignmentDeployment')]"
+                "[resourceId('Microsoft.Authorization/roleAssignments', variables('name_roleAssignmentName'))]",
+                "[resourceId(variables('const_clusterRGName'), 'Microsoft.Resources/deployments', format('{0}-deployment', variables('name_roleAssignmentName')))]"
             ],
             "kind": "AzureCLI",
             "identity": {
