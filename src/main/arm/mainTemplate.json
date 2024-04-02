@@ -174,7 +174,7 @@
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
         "name_deploymentScriptName": "[concat('aroscript', variables('const_suffix'))]",
         "name_preflightDSName": "[concat('preflight', variables('const_suffix'))]",
-        "name_roleAssignmentName": "[guid(format('{0}{1}Role assignment in group{0}', resourceGroup().id, variables('ref_identityId')))]",
+        "name_roleAssignmentName": "[guid(format('{0}{1}Role assignment in group{0}', variables('const_clusterRGName'), variables('ref_identityId')))]",
         "ref_identityId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
     },
     "resources": [
@@ -213,16 +213,31 @@
             "location": "[parameters('location')]"
         },
         {
-            "type": "Microsoft.Authorization/roleAssignments",
-            "apiVersion": "${azure.apiVersion.roleAssignment}",
-            "name": "[variables('name_roleAssignmentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "${azure.apiVersion.deployments}",
+            "name": "roleAssignmentDeployment",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
             ],
             "properties": {
-                "roleDefinitionId": "[variables('const_contribRole')]",
-                "principalId": "[reference(variables('ref_identityId')).principalId]",
-                "principalType": "ServicePrincipal"
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "${azure.apiVersion.roleAssignment}",
+                            "name": "[variables('name_roleAssignmentName')]",
+                            "scope": "[concat(subscription().id, '/resourceGroups/', variables('const_clusterRGName'))]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('const_contribRole')]",
+                                "principalId": "[reference(variables('ref_identityId')).principalId]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        }
+                    ]
+                }
             }
         },
         {
@@ -231,7 +246,7 @@
             "name": "[variables('name_preflightDSName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Authorization/roleAssignments', variables('name_roleAssignmentName'))]"
+                "[resourceId('Microsoft.Resources/deployments', 'roleAssignmentDeployment')]"
             ],
             "kind": "AzureCLI",
             "identity": {
