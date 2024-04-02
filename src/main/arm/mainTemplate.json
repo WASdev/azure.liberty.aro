@@ -216,6 +216,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "${azure.apiVersion.deployments}",
             "name": "roleAssignmentDeployment",
+            "resourceGroup": "[variables('const_clusterRGName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
             ],
@@ -231,10 +232,7 @@
                         "roleAssignmentName": {
                             "type": "string"
                         },
-                        "scope": {
-                            "type": "string"
-                        },
-                        "contribRole": {
+                        "contributorRole": {
                             "type": "string"
                         },
                         "principalId": {
@@ -246,9 +244,8 @@
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "${azure.apiVersion.roleAssignment}",
                             "name": "[parameters('roleAssignmentName')]",
-                            "scope": "[parameters('scope')]",
                             "properties": {
-                                "roleDefinitionId": "[parameters('contribRole')]",
+                                "roleDefinitionId": "[parameters('contributorRole')]",
                                 "principalId": "[parameters('principalId')]",
                                 "principalType": "ServicePrincipal"
                             }
@@ -259,10 +256,7 @@
                     "roleAssignmentName": {
                         "value": "[variables('name_roleAssignmentName')]"
                     },
-                    "scope": {
-                        "value": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('const_clusterRGName'))]"
-                    },
-                    "contribRole": {
+                    "contributorRole": {
                         "value": "[variables('const_contribRole')]"
                     },
                     "principalId": {
@@ -277,7 +271,7 @@
             "name": "[variables('name_preflightDSName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'roleAssignmentDeployment')]"
+                "[resourceId(variables('const_clusterRGName'), 'Microsoft.Resources/deployments', 'roleAssignmentDeployment')]"
             ],
             "kind": "AzureCLI",
             "identity": {
