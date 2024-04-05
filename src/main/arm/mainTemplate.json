@@ -174,7 +174,8 @@
         "name_clusterVNetName": "[concat('vnet', variables('const_suffix'))]",
         "name_deploymentScriptName": "[concat('aroscript', variables('const_suffix'))]",
         "name_preflightDSName": "[concat('preflight', variables('const_suffix'))]",
-        "name_roleAssignmentName": "[guid(format('{0}{1}Role assignment in group{0}', resourceGroup().id, variables('ref_identityId')))]",
+        "name_roleAssignmentName": "[guid(format('{0}{1}Role assignment in group{0}', resourceGroup().name, variables('ref_identityId')))]",
+        "name_roleAssignmentToCluserRGName": "[guid(format('{0}{1}Role assignment in group{0}', variables('const_clusterRGName'), variables('ref_identityId')))]",
         "ref_identityId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
     },
     "resources": [
@@ -226,12 +227,67 @@
             }
         },
         {
+            "condition": "[not(parameters('createCluster'))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "${azure.apiVersion.deployments}",
+            "name": "[variables('name_roleAssignmentToCluserRGName')]",
+            "resourceGroup": "[variables('const_clusterRGName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('const_identityName'))]"
+            ],
+            "properties": {
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "roleAssignmentName": {
+                            "type": "string"
+                        },
+                        "contributorRole": {
+                            "type": "string"
+                        },
+                        "principalId": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "${azure.apiVersion.roleAssignment}",
+                            "name": "[parameters('roleAssignmentName')]",
+                            "properties": {
+                                "roleDefinitionId": "[parameters('contributorRole')]",
+                                "principalId": "[parameters('principalId')]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        }
+                    ]
+                },
+                "parameters": {
+                    "roleAssignmentName": {
+                        "value": "[variables('name_roleAssignmentToCluserRGName')]"
+                    },
+                    "contributorRole": {
+                        "value": "[variables('const_contribRole')]"
+                    },
+                    "principalId": {
+                        "value": "[reference(variables('ref_identityId')).principalId]"
+                    }
+                }
+            }
+        },
+        {
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "${azure.apiVersion.deploymentScript}",
             "name": "[variables('name_preflightDSName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Authorization/roleAssignments', variables('name_roleAssignmentName'))]"
+                "[resourceId('Microsoft.Authorization/roleAssignments', variables('name_roleAssignmentName'))]",
+                "[resourceId(variables('const_clusterRGName'), 'Microsoft.Resources/deployments', variables('name_roleAssignmentToCluserRGName'))]"
             ],
             "kind": "AzureCLI",
             "identity": {
@@ -244,6 +300,10 @@
                 "AzCliVersion": "2.41.0",
                 "primaryScriptUri": "[uri(variables('const_scriptLocation'), concat('preflight.sh', parameters('_artifactsLocationSasToken')))]",
                 "environmentVariables": [
+                    {
+                        "name": "CREATE_CLUSTER",
+                        "value": "[parameters('createCluster')]"
+                    },
                     {
                         "name": "AAD_CLIENT_ID",
                         "value": "[parameters('aadClientId')]"
