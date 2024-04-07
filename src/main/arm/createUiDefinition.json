@@ -117,6 +117,62 @@
                         "label": "Provide information to create a new cluster",
                         "elements": [
                             {
+                                "name": "aroVmSizeInfo",
+                                "type": "Microsoft.Common.InfoBox",
+                                "options": {
+                                    "icon": "Info",
+                                    "text": "Azure Red Hat OpenShift requires a minimum of 40 cores to create and run an OpenShift cluster. The default VM sizes satisfy the requirement. For more information on customizing the VM size, consult the <a href='https://azure.microsoft.com/pricing/details/openshift/' target='_blank'>Azure Red Hat OpenShift pricing</a>."
+                                }
+                            },
+                            {
+                                "name": "masterVmSizeSelect",
+                                "type": "Microsoft.Compute.SizeSelector",
+                                "label": "Master VM size",
+                                "toolTip": "The size of the virtual machines for the master nodes in the cluster.",
+                                "recommendedSizes": [
+                                    "Standard_D8s_v3"
+                                ],
+                                "osPlatform": "Linux",
+                                "count": 3
+                            },
+                            {
+                                "name": "workerVmSizeSelect",
+                                "type": "Microsoft.Compute.SizeSelector",
+                                "label": "Worker VM size",
+                                "toolTip": "The size of the virtual machines for the worker nodes in the cluster.",
+                                "recommendedSizes": [
+                                    "Standard_D4s_v3"
+                                ],
+                                "osPlatform": "Linux",
+                                "count": "[int(steps('Cluster').createClusterInfo.minWorkerCount)]"
+                            },
+                            {
+                                "name": "minWorkerCount",
+                                "type": "Microsoft.Common.Slider",
+                                "min": 3,
+                                "max": "[int(steps('Cluster').createClusterInfo.maxWorkerCount)]",
+                                "label": "Minimum worker node count",
+                                "defaultValue": 3,
+                                "showStepMarkers": false,
+                                "toolTip": "Set the minimum worker node count for the cluster.",
+                                "constraints": {
+                                    "required": true
+                                }
+                            },
+                            {
+                                "name": "maxWorkerCount",
+                                "type": "Microsoft.Common.Slider",
+                                "min": "[int(steps('Cluster').createClusterInfo.minWorkerCount)]",
+                                "max": 100,
+                                "label": "Maximum worker node count",
+                                "defaultValue": 10,
+                                "showStepMarkers": false,
+                                "toolTip": "Set the maximum worker node count for the cluster.",
+                                "constraints": {
+                                    "required": true
+                                }
+                            },
+                            {
                                 "name": "pullSecret",
                                 "type": "Microsoft.Common.PasswordBox",
                                 "label": {
@@ -393,6 +449,86 @@
                         "visible": "[bool(steps('Application').deployApplication)]"
                     },
                     {
+                        "name": "autoScaling",
+                        "type": "Microsoft.Common.OptionsGroup",
+                        "label": "Auto-scale replicas?",
+                        "defaultValue": "No",
+                        "toolTip": "Select 'Yes' to automatically create or delete instances based on resource consumption, or select 'No' to specify static instances.",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "Yes",
+                                    "value": "true"
+                                },
+                                {
+                                    "label": "No",
+                                    "value": "false"
+                                }
+                            ],
+                            "required": true 
+                        },
+                        "visible": "[bool(steps('Application').deployApplication)]"
+                    },
+                    {
+                        "name": "cpuUtilizationPercentage",
+                        "type": "Microsoft.Common.Slider",
+                        "min": 1,
+                        "max": 100,
+                        "label": "Target average CPU utilization",
+                        "subLabel": "percentage",
+                        "defaultValue": 80,
+                        "showStepMarkers": false,
+                        "toolTip": "Set the target average CPU utilization (percentage) over all the replicas.",
+                        "constraints": {
+                            "required": true
+                        },
+                        "visible": "[and(bool(steps('Application').deployApplication), bool(steps('Application').autoScaling))]"
+                    },
+                    {
+                        "name": "minReplicas",
+                        "type": "Microsoft.Common.Slider",
+                        "min": 1,
+                        "max": "[int(steps('Application').maxReplicas)]",
+                        "label": "Minimum application replicas",
+                        "defaultValue": 1,
+                        "showStepMarkers": false,
+                        "toolTip": "Set the minimum number of application replicas.",
+                        "constraints": {
+                            "required": true
+                        },
+                        "visible": "[and(bool(steps('Application').deployApplication), bool(steps('Application').autoScaling))]"
+                    },
+                    {
+                        "name": "maxReplicas",
+                        "type": "Microsoft.Common.Slider",
+                        "min": "[int(steps('Application').minReplicas)]",
+                        "max": 100,
+                        "label": "Maximum application replicas",
+                        "showStepMarkers": false,
+                        "toolTip": "Set the maximum number of application replicas.",
+                        "constraints": {
+                            "required": true
+                        },
+                        "visible": "[and(bool(steps('Application').deployApplication), bool(steps('Application').autoScaling))]"
+                    },
+                    {
+                        "name": "requestCPUMillicore",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Minimum required CPU core (millicore)",
+                        "showStepMarkers": false,
+                        "toolTip": "Set the minimum required CPU core (millicore) over all the replicas.",
+                        "constraints": {
+                            "required": true,
+                            "validations": [
+                                {
+                                  "regex": "^[1-9][0-9]*$",
+                                  "message": "Only positive numbers are allowed."
+                                }
+                              ]
+                        },
+                        "visible": "[and(bool(steps('Application').deployApplication), bool(steps('Application').autoScaling))]"
+                    },
+                    {
                         "name": "appReplicas",
                         "type": "Microsoft.Common.Slider",
                         "min": 1,
@@ -404,7 +540,7 @@
                         "constraints": {
                             "required": true
                         },
-                        "visible": "[bool(steps('Application').deployApplication)]"
+                        "visible": "[and(bool(steps('Application').deployApplication), not(bool(steps('Application').autoScaling)))]"
                     }
                 ]
             }
@@ -412,6 +548,10 @@
         "outputs": {
             "location": "[location()]",
             "createCluster": "[bool(steps('Cluster').createCluster)]",
+            "vmSize": "[steps('Cluster').createClusterInfo.masterVmSizeSelect]",
+            "workerVmSize": "[steps('Cluster').createClusterInfo.workerVmSizeSelect]",
+            "minWorkerCount": "[int(steps('Cluster').createClusterInfo.minWorkerCount)]",
+            "maxWorkerCount": "[int(steps('Cluster').createClusterInfo.maxWorkerCount)]",
             "pullSecret": "[steps('Cluster').createClusterInfo.pullSecret]",
             "aadClientId": "[steps('Cluster').createClusterInfo.aadClientId]",
             "aadClientSecret": "[steps('Cluster').createClusterInfo.aadClientSecret]",
@@ -424,6 +564,11 @@
             "productEntitlementSource": "[steps('Application').productEntitlementSource]",
             "deployApplication": "[bool(steps('Application').deployApplication)]",
             "appImagePath": "[if(equals(steps('Application').appImageInfo.appImageOption, '2'), 'icr.io/appcafe/open-liberty/samples/getting-started', if(equals(steps('Application').appImageInfo.appImageOption, '3'), 'docker.io/ibmcom/websphere-liberty-sample:1.0.0', steps('Application').appImageInfo.appImagePath))]",
+            "autoScaling": "[bool(steps('Application').autoScaling)]",
+            "cpuUtilizationPercentage": "[int(steps('Application').cpuUtilizationPercentage)]",
+            "minReplicas": "[int(steps('Application').minReplicas)]",
+            "maxReplicas": "[int(steps('Application').maxReplicas)]",
+            "requestCPUMillicore": "[int(steps('Application').requestCPUMillicore)]",
             "appReplicas": "[int(steps('Application').appReplicas)]"
         }
     }
