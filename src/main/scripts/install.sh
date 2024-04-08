@@ -242,6 +242,99 @@ wait_route_available() {
     done
 }
 
+deploy_cluster_autoscaler() {
+    Max_Nodes=$1
+
+cat <<EOF | oc apply -f -
+apiVersion: autoscaling.openshift.io/v1
+kind: ClusterAutoscaler
+metadata:
+  name: default
+spec:
+  podPriorityThreshold: -10
+  resourceLimits:
+    maxNodesTotal: ${Max_Nodes}
+  scaleDown:
+    enabled: true
+    delayAfterAdd: 2m
+    delayAfterDelete: 1m
+    delayAfterFailure: 15s
+    unneededTime: 1m
+EOF
+
+    if [[ $? -ne 0 ]]; then
+        echo "Failed to deploy cluster autoscaler." >&2
+        exit 1
+    fi
+}
+
+deploy_machine_autoscalers() {
+    allocatableNodes=$1
+
+    # The output from your command (assuming it's saved in a variable)
+    output=$(oc get machineset -n openshift-machine-api)
+
+    # Read the output into an array of lines
+    IFS=$'\n' read -r -d '' -a lines <<< "$output"
+
+    # Remove the header line
+    unset lines[0]
+
+    # Initialize an empty array for storing 'name' and 'desired' pairs
+    machineset_array=()
+
+    # Read each line and extract the 'name' and 'desired' columns
+    for line in "${lines[@]}"; do
+        # Read the columns into an array
+        read -r -a cols <<< "$line"
+        
+        # Append 'name' and 'desired' pair to the machineset_array
+        machineset_array+=("${cols[0]} ${cols[1]}")
+    done
+
+    # Get the array size
+    array_size=${#machineset_array[@]}
+
+    # Calculate the quotient and remainder
+    quotient=$((allocatableNodes / array_size))
+    remainder=$((allocatableNodes % array_size))
+
+    # Iterate over the array in reverse order
+    for (( idx=${#machineset_array[@]}-1 ; idx>=0 ; idx-- )) ; do
+        # Calculate allocatable nodes for the current machine set
+        allocatable=$((quotient))
+        if [[ $remainder -gt 0 ]]; then
+            allocatable=$((allocatable + 1))
+            remainder=$((remainder - 1))
+        fi
+
+        # Extract 'MachineSet_Name' and 'Min_Worker_Nodes' from the current machine set
+        read -r MachineSet_Name Min_Worker_Nodes <<< "${machineset_array[idx]}"
+        Max_Worker_Nodes=$((Min_Worker_Nodes + allocatable))
+    
+cat <<EOF | oc apply -f -
+apiVersion: autoscaling.openshift.io/v1beta1
+kind: MachineAutoscaler
+metadata:
+  name: ${MachineSet_Name}-autoscaler
+  namespace: "openshift-machine-api"
+spec:
+  minReplicas: ${Min_Worker_Nodes}
+  maxReplicas: ${Max_Worker_Nodes}
+  scaleTargetRef:
+    apiVersion: machine.openshift.io/v1beta1
+    kind: MachineSet
+    name: ${MachineSet_Name}
+EOF
+        if [[ $? -ne 0 ]]; then
+            echo "Failed to deploy machine autoscaler for machineset ${MachineSet_Name}." >&2
+            exit 1
+        fi
+    done
+
+    unset IFS
+}
+
 clusterRGName=$1
 clusterName=$2
 scriptLocation=$3
@@ -277,6 +370,12 @@ wait_login_complete $kubeadminUsername $kubeadminPassword "$apiServerUrl" $logFi
 if [[ $? -ne 0 ]]; then
   echo "Failed to sign into the cluster with ${kubeadminUsername}." >&2
   exit 1
+fi
+
+# Install cluster autoscaler and machine autoscalers for the new cluster
+if [ "$CREATE_CLUSTER" = True ]; then
+    deploy_cluster_autoscaler $MAX_NODES
+    deploy_machine_autoscalers $ALLOCATABLE_WORKER_NODES
 fi
 
 operatorDeploymentName=
