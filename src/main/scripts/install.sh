@@ -244,8 +244,9 @@ wait_route_available() {
 
 deploy_cluster_autoscaler() {
     Max_Nodes=$1
+    logFile=$2
 
-cat <<EOF | oc apply -f -
+cat <<EOF > cluster-autoscaler.yaml
 apiVersion: autoscaling.openshift.io/v1
 kind: ClusterAutoscaler
 metadata:
@@ -261,7 +262,7 @@ spec:
     delayAfterFailure: 15s
     unneededTime: 1m
 EOF
-
+    wait_resource_applied cluster-autoscaler.yaml $logFile
     if [[ $? -ne 0 ]]; then
         echo "Failed to deploy cluster autoscaler." >&2
         exit 1
@@ -270,6 +271,7 @@ EOF
 
 deploy_machine_autoscalers() {
     allocatableNodes=$1
+    logFile=$2
 
     # The output from your command (assuming it's saved in a variable)
     output=$(oc get machineset -n openshift-machine-api)
@@ -312,7 +314,7 @@ deploy_machine_autoscalers() {
         read -r MachineSet_Name Min_Worker_Nodes <<< "${machineset_array[idx]}"
         Max_Worker_Nodes=$((Min_Worker_Nodes + allocatable))
     
-cat <<EOF | oc apply -f -
+cat <<EOF > machine-autoscaler-${MachineSet_Name}.yaml
 apiVersion: autoscaling.openshift.io/v1beta1
 kind: MachineAutoscaler
 metadata:
@@ -326,6 +328,7 @@ spec:
     kind: MachineSet
     name: ${MachineSet_Name}
 EOF
+        wait_resource_applied machine-autoscaler-${MachineSet_Name}.yaml $logFile
         if [[ $? -ne 0 ]]; then
             echo "Failed to deploy machine autoscaler for machineset ${MachineSet_Name}." >&2
             exit 1
@@ -374,8 +377,8 @@ fi
 
 # Install cluster autoscaler and machine autoscalers for the new cluster
 if [ "$CREATE_CLUSTER" = True ]; then
-    deploy_cluster_autoscaler $MAX_NODES
-    deploy_machine_autoscalers $ALLOCATABLE_WORKER_NODES
+    deploy_cluster_autoscaler $MAX_NODES $logFile
+    deploy_machine_autoscalers $ALLOCATABLE_WORKER_NODES $logFile
 fi
 
 operatorDeploymentName=
