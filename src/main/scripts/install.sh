@@ -409,17 +409,26 @@ fi
 oc project $Project_Name
 
 # Choose right template & protocol
-appDeploymentTemplate=open-liberty-application.yaml.template
+appDeploymentTemplate=open-liberty-application
 protocol=https
 if [ "$DEPLOY_WLO" = True ]; then
-    appDeploymentTemplate=websphere-liberty-application.yaml.template
+    appDeploymentTemplate=websphere-liberty-application
     protocol=http
+fi
+if [ "$AUTO_SCALING" = True ]; then
+    appDeploymentTemplate=${appDeploymentTemplate}-autoscaling.yaml.template
+else
+    appDeploymentTemplate=${appDeploymentTemplate}.yaml.template
 fi
 
 appDeploymentFile=liberty-application.yaml
 export WLA_Edition="${WLA_EDITION}"
 export WLA_Product_Entitlement_Source="${WLA_PRODUCT_ENTITLEMENT_SOURCE}"
 export WLA_Metric="${WLA_METRIC}"
+export Min_Replicas="${MIN_REPLICAS}"
+export Max_Replicas="${MAX_REPLICAS}"
+export Cpu_Utilization_Percentage="${CPU_UTILIZATION_PERCENTAGE}"
+export Request_Cpu_Millicore="${REQUEST_CPU_MILLICORE}"
 
 # Deploy application image if it's requested by the user
 if [ "$deployApplication" = True ]; then

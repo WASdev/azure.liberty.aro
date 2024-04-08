@@ -95,7 +95,7 @@
         },
         "maxWorkerCount": {
             "type": "int",
-            "defaultValue": 3,
+            "defaultValue": 10,
             "metadata": {
                 "description": "The maximum worker node count"
             }
@@ -508,7 +508,9 @@
                     "[uri(variables('const_scriptLocation'), concat('open-liberty-application.yaml.template', parameters('_artifactsLocationSasToken')))]",
                     "[uri(variables('const_scriptLocation'), concat('catalog-source.yaml', parameters('_artifactsLocationSasToken')))]",
                     "[uri(variables('const_scriptLocation'), concat('websphere-liberty-operator-subscription.yaml', parameters('_artifactsLocationSasToken')))]",
-                    "[uri(variables('const_scriptLocation'), concat('websphere-liberty-application.yaml.template', parameters('_artifactsLocationSasToken')))]"
+                    "[uri(variables('const_scriptLocation'), concat('websphere-liberty-application.yaml.template', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(variables('const_scriptLocation'), concat('open-liberty-application-autoscaling.yaml.template', parameters('_artifactsLocationSasToken')))]",
+                    "[uri(variables('const_scriptLocation'), concat('websphere-liberty-application-autoscaling.yaml.template', parameters('_artifactsLocationSasToken')))]"
                 ],
                 "environmentVariables": [
                     {

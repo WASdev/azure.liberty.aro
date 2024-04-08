@@ -22,13 +22,25 @@
 # file in this pair of files you probably should make the same changes
 # to the other member of the pair.
 
-apiVersion: apps.openliberty.io/v1
-kind: OpenLibertyApplication
+apiVersion: liberty.websphere.ibm.com/v1
+kind: WebSphereLibertyApplication
 metadata:
   name: ${Application_Name}
   namespace: ${Project_Name}
 spec:
-  replicas: ${Application_Replicas}
+  license:
+    accept: true
+    edition: ${WLA_Edition}
+    metric: ${WLA_Metric}
+    productEntitlementSource: ${WLA_Product_Entitlement_Source}
+  autoscaling:
+    minReplicas: ${Min_Replicas}
+    maxReplicas: ${Max_Replicas}
+    targetCPUUtilizationPercentage: ${Cpu_Utilization_Percentage}
+  resources:
+    requests:
+      cpu: ${Request_Cpu_Millicore}m
   applicationImage: ${Application_Image}
   pullPolicy: Always
+  manageTLS: false
   expose: true
