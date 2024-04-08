@@ -86,6 +86,20 @@
                 "description": "Master Node VM Type"
             }
         },
+        "minWorkerCount": {
+            "type": "int",
+            "defaultValue": 3,
+            "metadata": {
+                "description": "The minimum worker node count"
+            }
+        },
+        "maxWorkerCount": {
+            "type": "int",
+            "defaultValue": 3,
+            "metadata": {
+                "description": "The maximum worker node count"
+            }
+        },
         "workerVmSize": {
             "type": "string",
             "defaultValue": "Standard_D4s_v3",
@@ -137,6 +151,41 @@
             "type": "string",
             "metadata": {
                 "description": "The image path of the application"
+            }
+        },  
+        "autoScaling": {
+            "defaultValue": false,
+            "type": "bool",
+            "metadata": {
+                "description": "Flag indicating whether to enable autoscaling for app deployment"
+            }
+        },
+        "cpuUtilizationPercentage": {
+            "type": "int",
+            "defaultValue": 80,
+            "metadata": {
+                "description": "The target average CPU utilization percentage for autoscaling"
+            }
+        },
+        "minReplicas": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The minimum application replicas for autoscaling"
+            }
+        },
+        "maxReplicas": {
+            "type": "int",
+            "defaultValue": 100,
+            "metadata": {
+                "description": "The maximum application replicas for autoscaling"
+            }
+        },
+        "requestCPUMillicore": {
+            "type": "int",
+            "defaultValue": 300,
+            "metadata": {
+                "description": "The minimum required CPU core (millicore) over all the replicas for autoscaling"
             }
         },
         "appReplicas": {
@@ -420,7 +469,7 @@
                         "vmSize": "[parameters('workerVmSize')]",
                         "diskSizeGB": 128,
                         "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('name_clusterVNetName'), 'worker')]",
-                        "count": 3,
+                        "count": "[parameters('minWorkerCount')]",
                         "encryptionAtHost": "Disabled"
                     }
                 ],
@@ -477,6 +526,38 @@
                     {
                         "name": "WLA_METRIC",
                         "value": "[variables('const_metric')]"
+                    },
+                    {
+                        "name": "CREATE_CLUSTER",
+                        "value": "[parameters('createCluster')]"
+                    },
+                    {
+                        "name": "MAX_NODES",
+                        "value": "[add(parameters('maxWorkerCount'), 3)]"
+                    },
+                    {
+                        "name": "ALLOCATABLE_WORKER_NODES",
+                        "value": "[sub(parameters('maxWorkerCount'), parameters('minWorkerCount'))]"
+                    },
+                    {
+                        "name": "AUTO_SCALING",
+                        "value": "[parameters('autoScaling')]"
+                    },
+                    {
+                        "name": "CPU_UTILIZATION_PERCENTAGE",
+                        "value": "[parameters('cpuUtilizationPercentage')]"
+                    },
+                    {
+                        "name": "MIN_REPLICAS",
+                        "value": "[parameters('minReplicas')]"
+                    },
+                    {
+                        "name": "MAX_REPLICAS",
+                        "value": "[parameters('maxReplicas')]"
+                    },
+                    {
+                        "name": "REQUEST_CPU_MILLICORE",
+                        "value": "[parameters('requestCPUMillicore')]"
                     }
                 ],
                 "cleanupPreference": "OnSuccess",
