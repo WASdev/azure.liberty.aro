@@ -29,6 +29,9 @@
         "appImagePath": {
             "value": "${appImagePath}"
         },
+        "autoScaling": {
+            "value": "${autoScalingParam}"
+        },
         "appReplicas": {
             "value": "${appReplicas}"
         }
