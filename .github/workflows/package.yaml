@@ -1,8 +1,14 @@
 # Copyright (c) IBM Corporation.
 # Copyright (c) Microsoft Corporation.
-name: Package ARM
+name: Package ARM and Update Offer Artifact
 on:
   workflow_dispatch:
+    inputs:
+      updateOfferArtifact:
+        description: 'Update offer artifact'
+        required: true
+        type: boolean
+        default: true
   # Allows you to run this workflow using GitHub APIs
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
@@ -30,16 +36,7 @@ jobs:
         run: |
           curl -Lo external-deps-versions.properties https://raw.githubusercontent.com/Azure/azure-javaee-iaas/main/external-deps-versions.properties
           source external-deps-versions.properties
-          echo "azCliVersion=${AZ_CLI_VERSION}" >> $GITHUB_ENV
           echo "bicepVersion=${BICEP_VERSION}" >> $GITHUB_ENV
-          echo "refArmttk=${ARM_TTK_REFERENCE}" >> $GITHUB_ENV
-          echo "refJavaee=${AZURE_JAVAEE_IAAS_REFERENCE}" >> $GITHUB_ENV
-      - name: Checkout azure-javaee-iaas
-        uses: actions/checkout@v2
-        with:
-          repository: Azure/azure-javaee-iaas
-          path: azure-javaee-iaas
-          ref: ${{ env.refJavaee }}
       - name: Download arm-ttk used in partner center pipeline
         run: |
           wget -O arm-template-toolkit.zip https://aka.ms/arm-ttk-azureapps
@@ -53,9 +50,17 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Build azure-javaee-iaas
-        run: mvn -DskipTests clean install --file azure-javaee-iaas/pom.xml
-
+          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: MAVEN_USERNAME # env variable for username
+          server-password: MAVEN_TOKEN # env variable for token
+      - name: Set Maven env
+        env:
+          MAVEN_USERNAME: github
+          MAVEN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          echo "MAVEN_USERNAME=${MAVEN_USERNAME}" >> "$GITHUB_ENV"
+          echo "MAVEN_TOKEN=${MAVEN_TOKEN}" >> "$GITHUB_ENV"
       - name: Build and test ${{ env.repoName }}
         run: |
           cd ${{ env.repoName }}
@@ -76,6 +81,7 @@ jobs:
           name: ${{steps.artifact_file.outputs.artifactName}}
           path: ${{steps.artifact_file.outputs.artifactPath}}
       - name: Update offer artifact
+        if: ${{ inputs.updateOfferArtifact == true || github.event.client_payload.updateOfferArtifact == true }}
         uses: microsoft/microsoft-partner-center-github-action@v3
         with:
           offerId: ${{ env.offerId }}

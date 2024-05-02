@@ -19,6 +19,47 @@
 1. Install [Maven](https://maven.apache.org/download.cgi).
 1. Install [`jq`](https://stedolan.github.io/jq/download/).
 
+## Local Build Setup and Requirements
+This project utilizes [GitHub Packages](https://github.com/features/packages) for hosting and retrieving some dependencies. To ensure you can smoothly run and build the project in your local environment, specific configuration settings are required.
+
+GitHub Packages requires authentication to download or publish packages. Therefore, you need to configure your Maven `settings.xml` file to authenticate using your GitHub credentials. The primary reason for this is that GitHub Packages does not support anonymous access, even for public packages.
+
+Please follow these steps:
+
+1. Create a Personal Access Token (PAT)
+    - Go to [Personal access tokens](https://github.com/settings/tokens).
+    - Click on Generate new token.
+    - Give your token a descriptive name, set the expiration as needed, and select the scopes (read:packages, write:packages).
+    - Click Generate token and make sure to copy the token.
+
+2. Configure Maven Settings
+    - Locate or create the settings.xml file in your .m2 directory(~/.m2/settings.xml).
+    - Add the GitHub Package Registry server configuration with your username and the PAT you just created. It should look something like this:
+       ```xml
+        <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 
+                               https://maven.apache.org/xsd/settings-1.2.0.xsd">
+         
+       <!-- other settings
+       ...
+       -->
+      
+         <servers>
+           <server>
+             <id>github</id>
+             <username>YOUR_GITHUB_USERNAME</username>
+             <password>YOUR_PERSONAL_ACCESS_TOKEN</password>
+           </server>
+         </servers>
+      
+       <!-- other settings
+       ...
+       -->
+      
+        </settings>
+       ```
+      
 ## Steps of deployment
 
 1. Checkout [azure-javaee-iaas](https://github.com/Azure/azure-javaee-iaas)
