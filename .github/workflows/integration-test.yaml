@@ -35,7 +35,7 @@ on:
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
   # Enable/disable WebSphere Liberty Operator and sample application. Keep/delete Azure resources at the end.
-  # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "integration-test", "client_payload": {"deployWLO": true|false, "deployApplication": true|false, "autoScaling": true|false, "deleteAzureResources": true|false}}'
+  # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "integration-test", "client_payload": {"deployWLO": true|false, "deployApplication": true|false, "autoScaling": "true|false", "deleteAzureResources": "true|false"}}'
 env:
   repoName: "azure.liberty.aro"
   azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
