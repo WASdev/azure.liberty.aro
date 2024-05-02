@@ -14,6 +14,11 @@ on:
         required: true
         type: boolean
         default: true
+      autoScaling:
+        description: 'Autoscaling for app deployment'
+        required: true
+        type: boolean
+        default: false
       deleteAzureResources:
         description: 'Delete Azure resources at the end'
         required: true
@@ -23,14 +28,14 @@ on:
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
   # Enable/disable WebSphere Liberty Operator and sample application. Keep/delete Azure resources at the end.
-  # curl --verbose -XPOST -u "WASdev:${PERSONAL_ACCESS_TOKEN}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/${REPO_NAME}/actions/workflows/integration-test.yaml/dispatches --data '{"ref": "main", "inputs":{"deployWLO": "true|false", "deployApplication": "true|false", "deleteAzureResources": "true|false"}}'
+  # curl --verbose -XPOST -u "WASdev:${PERSONAL_ACCESS_TOKEN}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/${REPO_NAME}/actions/workflows/integration-test.yaml/dispatches --data '{"ref": "main", "inputs":{"deployWLO": "true|false", "deployApplication": "true|false", "autoScaling": "true|false", "deleteAzureResources": "true|false"}}'
   repository_dispatch:
     types: [integration-test]
   # Allows you to run this workflow using GitHub repository dispatch APIs
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
   # Enable/disable WebSphere Liberty Operator and sample application. Keep/delete Azure resources at the end.
-  # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "integration-test", "client_payload": {"deployWLO": true|false, "deployApplication": true|false, "deleteAzureResources": true|false}}'
+  # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "integration-test", "client_payload": {"deployWLO": true|false, "deployApplication": true|false, "autoScaling": "true|false", "deleteAzureResources": "true|false"}}'
 env:
   repoName: "azure.liberty.aro"
   azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
@@ -87,10 +92,14 @@ jobs:
             deployApplication=true
           fi
           echo "deployApplication=${deployApplication}" >> $GITHUB_ENV
+          autoScaling=false
+          if ${{ inputs.autoScaling == true || github.event.client_payload.autoScaling == true }}; then
+            autoScaling=true
+          fi
           cd ${{ env.repoName }}
           mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME -DcreateCluster=true \
             -DdeployWLO=${deployWLO} -Dedition="IBM WebSphere Application Server" -DproductEntitlementSource="Standalone" \
-            -DdeployApplication=${deployApplication} -DappImagePath=icr.io/appcafe/open-liberty/samples/getting-started -DappReplicas=2 \
+            -DdeployApplication=${deployApplication} -DappImagePath=icr.io/appcafe/open-liberty/samples/getting-started -DautoScalingParam=${autoScaling} -DappReplicas=2 \
             -Dtest.args="-Test All" -Passembly -Ptemplate-validation-tests clean install
       - uses: azure/login@v1
         id: azure-login

@@ -28,7 +28,13 @@ metadata:
   name: ${Application_Name}
   namespace: ${Project_Name}
 spec:
-  replicas: ${Application_Replicas}
+  autoscaling:
+    minReplicas: ${Min_Replicas}
+    maxReplicas: ${Max_Replicas}
+    targetCPUUtilizationPercentage: ${Cpu_Utilization_Percentage}
+  resources:
+    requests:
+      cpu: ${Request_Cpu_Millicore}m
   applicationImage: ${Application_Image}
   pullPolicy: Always
   expose: true

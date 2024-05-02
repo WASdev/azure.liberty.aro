@@ -160,6 +160,8 @@ parametersJson=$( echo "$parametersJson" | jq --arg aadClientId "$aadClientId" '
 parametersJson=$( echo "$parametersJson" | jq --arg aadClientSecret "$aadClientSecret" '{"aadClientSecret": {"value":$aadClientSecret}} + .' )
 parametersJson=$( echo "$parametersJson" | jq --arg aadObjectId "$aadObjectId" '{"aadObjectId": {"value":$aadObjectId}} + .' )
 parametersJson=$( echo "$parametersJson" | jq --arg rpObjectId "$rpObjectId" '{"rpObjectId": {"value":$rpObjectId}} + .' )
+autoScaling=$( echo $parametersJson | jq '.autoScaling.value' | sed 's/"//g' )
+parametersJson=$( echo $parametersJson | jq --argjson autoScaling "$autoScaling" '.autoScaling.value = $autoScaling' )
 parametersJson=$( echo "$parametersJson" | jq -c '.' )
 
 # Start deployment

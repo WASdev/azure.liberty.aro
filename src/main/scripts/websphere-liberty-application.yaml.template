@@ -13,6 +13,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+# This file is a member of a pair. The only difference between the two
+# files is that one has autoscaling content and the other one does
+# not. The member of the pair with the autoscaling content has the
+# string `-autoscaling` in the filename.
+
+# IMPORTANT note to maintainers: if you make semantic changes to one
+# file in this pair of files you probably should make the same changes
+# to the other member of the pair.
+
 apiVersion: liberty.websphere.ibm.com/v1
 kind: WebSphereLibertyApplication
 metadata:
