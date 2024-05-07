@@ -55,21 +55,21 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "The application ID of an Azure Active Directory client application"
+                "description": "The application ID of a Microsoft Entra ID client application"
             }
         },
         "aadClientSecret": {
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "description": "The secret of an Azure Active Directory client application"
+                "description": "The secret of a Microsoft Entra ID client application"
             }
         },
         "aadObjectId": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "The service principal Object ID of an Azure Active Directory client application"
+                "description": "The service principal Object ID of a Microsoft Entra ID client application"
             }
         },
         "rpObjectId": {
