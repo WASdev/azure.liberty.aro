@@ -26,5 +26,5 @@ if [[ "${CREATE_CLUSTER,,}" == "true" ]]; then
 
   # Wait 30s for service principal available after creation
   # See https://github.com/WASdev/azure.liberty.aro/issues/59 & https://github.com/WASdev/azure.liberty.aro/issues/79
-  sleep 30
+  sleep 60
 fi
