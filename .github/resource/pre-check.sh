@@ -1,4 +1,9 @@
+#!/usr/bin/env bash
+# Copyright (c) IBM Corporation.
+# Copyright (c) Microsoft Corporation.
+
 # Check environment and tools required to run the script
+set -Eeuo pipefail
 
 # ANSI color codes
 GREEN='\033[0;32m'
