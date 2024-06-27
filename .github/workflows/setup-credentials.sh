@@ -31,4 +31,6 @@ source ../resource/pre-check.sh
 ## Set environment variables
 export param_file="../resource/credentials-params.yaml"
 
+export REPO_NAME=$(basename `git rev-parse --show-toplevel`)
+source ../resource/azure-credential-setup.sh
 source ../resource/setup.sh
