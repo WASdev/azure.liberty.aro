@@ -4,7 +4,8 @@
 
 set -Eeuo pipefail
 
-echo "teardown-credentials.sh - Start"
+CURRENT_FILE_NAME="credentials-params-teardown.sh"
+echo "Execute $CURRENT_FILE_NAME - Start------------------------------------------"
 
 # remove param the json
 yq eval -o=json '.[]' "$param_file" | jq -c '.' | while read -r line; do
@@ -13,4 +14,4 @@ yq eval -o=json '.[]' "$param_file" | jq -c '.' | while read -r line; do
     gh secret remove "$name"
 done
 
-echo "teardown-credentials.sh - Finish"
+echo "Execute $CURRENT_FILE_NAME - End--------------------------------------------"

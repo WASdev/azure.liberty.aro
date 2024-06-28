@@ -8,8 +8,6 @@ set -Eeuo pipefail
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo "setup-credentials.sh - Start"
-
 # Function to print error messages in red
 print_error() {
     local message=$1
@@ -49,15 +47,18 @@ set_values() {
 
 # Main script execution
 main() {
-    if check_parameters; then
-        echo "All parameters are valid."
-        set_values
-    else
-        echo "Parameter check failed. Exiting."
-        exit 1
-    fi
+  CURRENT_FILE_NAME="credentials-params-setup.sh"
+  echo "Execute $CURRENT_FILE_NAME - Start------------------------------------------"
 
-    echo "setup-credentials.sh - Finish"
+  if check_parameters; then
+      echo "All parameters are valid."
+      set_values
+  else
+      echo "Parameter check failed. Exiting."
+      exit 1
+  fi
+
+  echo "Execute $CURRENT_FILE_NAME - End--------------------------------------------"
 }
 
 # Run the main function
