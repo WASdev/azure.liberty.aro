@@ -7,6 +7,7 @@ set -Eeuo pipefail
 echo "Execute azure-credential-setup.sh - Start------------------------------------------"
 
 ## Create Azure Credentials
+REPO_NAME=$(basename `git rev-parse --show-toplevel`)
 AZURE_CREDENTIALS_SP_NAME="sp-${REPO_NAME}-$(date +%s)"
 echo "Creating Azure Service Principal with name: $AZURE_CREDENTIALS_SP_NAME"
 AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv| tr -d '\r\n')
