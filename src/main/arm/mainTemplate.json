@@ -360,6 +360,14 @@
                     {
                         "name": "AAD_OBJECT_ID",
                         "value": "[parameters('aadObjectId')]"
+                    },
+                    {
+                        "name": "DEPLOY_APPLICATION",
+                        "value": "[parameters('deployApplication')]"
+                    },
+                    {
+                        "name": "SOURCE_IMAGE_PATH",
+                        "value": "[parameters('appImagePath')]"
                     }
                 ],
                 "cleanupPreference": "OnSuccess",

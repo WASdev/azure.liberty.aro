@@ -15,7 +15,26 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-set -Eeuo pipefail
+# Check if image specified by SOURCE_IMAGE_PATH is publically accessible and supports amd64 architecture
+if [[ "${DEPLOY_APPLICATION,,}" == "true" ]]; then
+  # Install docker-cli to inspect the image
+  apk update
+  apk add docker-cli
+  export DOCKER_CLI_EXPERIMENTAL=enabled
+  docker manifest inspect $SOURCE_IMAGE_PATH > inspect_output.txt 2>&1
+  if [ $? -ne 0 ]; then
+    echo "Failed to inspect image $SOURCE_IMAGE_PATH." $(cat inspect_output.txt) >&2
+    exit 1
+  else
+    arches=$(cat inspect_output.txt | jq -r '.manifests[].platform.architecture')
+    if echo "$arches" | grep -q '^amd64$'; then
+      echo "Image $SOURCE_IMAGE_PATH supports amd64 architecture." $(cat inspect_output.txt)
+    else
+      echo "Image $SOURCE_IMAGE_PATH does not support amd64 architecture." $(cat inspect_output.txt) >&2
+      exit 1
+    fi
+  fi
+fi
 
 if [[ "${CREATE_CLUSTER,,}" == "true" ]]; then
   # Fail fast the deployment if object Id of the service principal is empty
