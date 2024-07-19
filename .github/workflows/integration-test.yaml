@@ -10,10 +10,14 @@ on:
         type: boolean
         default: false
       deployApplication:
-        description: 'Sample application'
+        description: 'Deploy application'
         required: true
         type: boolean
         default: true
+      appImagePath:
+        description: 'Application image path'
+        required: true
+        default: 'icr.io/appcafe/open-liberty/samples/getting-started'
       autoScaling:
         description: 'Autoscaling for app deployment'
         required: true
@@ -99,7 +103,7 @@ jobs:
           cd ${{ env.repoName }}
           mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME -DcreateCluster=true \
             -DdeployWLO=${deployWLO} -Dedition="IBM WebSphere Application Server" -DproductEntitlementSource="Standalone" \
-            -DdeployApplication=${deployApplication} -DappImagePath=icr.io/appcafe/open-liberty/samples/getting-started -DautoScalingParam=${autoScaling} -DappReplicas=2 \
+            -DdeployApplication=${deployApplication} -DappImagePath=${{ inputs.appImagePath }} -DautoScalingParam=${autoScaling} -DappReplicas=2 \
             -Dtest.args="-Test All" -Passembly -Ptemplate-validation-tests clean install
       - uses: azure/login@v1
         id: azure-login
