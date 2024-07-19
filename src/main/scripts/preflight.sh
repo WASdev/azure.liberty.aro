@@ -15,6 +15,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+set -Euo pipefail
 # Check if image specified by SOURCE_IMAGE_PATH is publically accessible and supports amd64 architecture
 if [[ "${DEPLOY_APPLICATION,,}" == "true" ]]; then
   # Install docker-cli to inspect the image
