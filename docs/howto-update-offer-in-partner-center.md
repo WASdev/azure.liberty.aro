@@ -20,9 +20,9 @@ The recommended way to set the secrets is to run the scripts.  Setting the secre
 
 #### Setting the secrets
 
-1. cd `.github/workflows`
-1. Run the `setup-credentials.sh` script. This will ask you a series of questions and create the necessary GitHub Actions secrets using the `gh` cli. If this script exits successfully, you should be able to run the workflows successfully. If the script does not exit successfully, troubleshoot and resolve the problem before proceeding.
-   Note, the script `tear-down-credentials.sh` is the inverse of `setup-credentials.sh`. It deletes any Azure service principals and roles and any GitHub Actions secrets.
+- Follow guidance on top of [setup-credentials.sh](../.github/workflows/setup-credentials.sh#L6) to run the shell scripts. The scripts will set the necessary secrets for the repository running the workflows.
+- If you want to tear down the secrets, follow the guidance on top of [teardown-credentials.sh](../.github/workflows/teardown-credentials.sh#L6) to run the shell scripts. The scripts will remove the necessary secrets for the repository running the workflows.
+
 
 ## When should I update the offer in partner center?
 
