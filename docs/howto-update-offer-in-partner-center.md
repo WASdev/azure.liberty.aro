@@ -16,6 +16,7 @@ The recommended way to set the secrets is to run the scripts.  Setting the secre
 1. Ensure the Azure ID that is currently logged in when running the scripts has the `Global Administrator` Azure AD role.
 1. Ensure the Azure CLI is installed on a supported UNIX-like environment. See [How to install the Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli). **Sign in to Azure using the Azure CLI**. After installation, sign in to the correct tenant. The actions will create Azure resources in this signed-in tenant.
 1. Ensure the GitHub CLI is installed on the same environment as the preceding step. See [Installation](https://cli.github.com/manual/installation). Note: If working on macOS, we highly recommend Homebrew. Visit https://brew.sh/ for instructions on installing Homebrew. **Authenticate to GitHub**. After installation, use `gh auth login` to sign in to GitHub. You'll need a sufficiently empowered `PERSONAL ACCESS TOKEN` for this repository.
+1. Ensure **yq** 4.x installed. See [yq](https://github.com/mikefarah/yq?tab=readme-ov-file#install) for installation instructions.
 1. Clone this repository into the environment from the preceding steps.
 
 #### Setting the secrets
