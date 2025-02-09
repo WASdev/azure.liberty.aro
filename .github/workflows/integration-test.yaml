@@ -28,6 +28,11 @@ on:
         required: true
         type: boolean
         default: true
+      location:
+        description: 'Location of the Azure resources'
+        required: true
+        type: string
+        default: 'eastus'
   # Allows you to run this workflow using GitHub workflow dispatch APIs
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
@@ -48,7 +53,7 @@ env:
   msTeamsWebhook: ${{ secrets.MSTEAMS_WEBHOOK }}
   testResourceGroup: libertyAroTestRG-${{ github.repository_owner }}-${{ github.run_id }}-${{ github.run_number }}
   testDeploymentName: libertyAroTestDeployment-${{ github.run_id }}-${{ github.run_number }}
-  location: eastus
+  location: ${{ github.event.inputs.location || 'eastus' }}
 jobs:
   integration-test:
     runs-on: ubuntu-latest
