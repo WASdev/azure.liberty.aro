@@ -82,7 +82,7 @@ jobs:
           path: ${{steps.artifact_file.outputs.artifactPath}}
       - name: Update offer artifact
         if: ${{ inputs.updateOfferArtifact == true || github.event.client_payload.updateOfferArtifact == true }}
-        uses: microsoft/microsoft-partner-center-github-action@v3
+        uses: microsoft/microsoft-partner-center-github-action@v3.2
         with:
           offerId: ${{ env.offerId }}
           planId: ${{ env.planId }}
