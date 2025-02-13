@@ -19,7 +19,7 @@ metadata:
   name: open-liberty-certified
   namespace: openshift-operators
 spec:
-  channel: v1.3
+  channel: v1.4
   installPlanApproval: Automatic
   name: open-liberty-certified
   source: certified-operators
