@@ -27,6 +27,7 @@ check_parameters() {
             has_empty_value=1
             break
         else
+            eval "PARAM_$name='$value'"
             echo "Name: $name, Value: $value"
         fi
     done < <(yq eval -o=json '.[]' "$param_file" | jq -c '.')
@@ -41,7 +42,7 @@ set_values() {
     yq eval -o=json '.[]' "$param_file" | jq -c '.' | while read -r line; do
         name=$(echo "$line" | jq -r '.name')
         value=$(echo "$line" | jq -r '.value')
-        gh secret set "$name" -b"${value}"
+        gh --repo ${PARAM_USER_NAME}/azure.liberty.aro secret set "$name" -b"${value}"
     done
 }
 
