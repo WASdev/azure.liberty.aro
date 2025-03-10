@@ -20,7 +20,7 @@ az rest -m POST \
   --body "{\"@odata.id\":\"https://graph.microsoft.com/v1.0/directoryObjects/${SP_ID}\"}"
 
 ## Set the Azure Credentials as a secret in the repository
-gh secret set "AZURE_CREDENTIALS" -b"${AZURE_CREDENTIALS}"
-gh variable set "AZURE_CREDENTIALS_SP_NAME" -b"${AZURE_CREDENTIALS_SP_NAME}"
+gh secret --repo $(gh repo set-default --view) set "AZURE_CREDENTIALS" -b"${AZURE_CREDENTIALS}"
+gh variable --repo $(gh repo set-default --view) set "AZURE_CREDENTIALS_SP_NAME" -b"${AZURE_CREDENTIALS_SP_NAME}"
 
 echo "Execute $CURRENT_FILE_NAME - End--------------------------------------------"
