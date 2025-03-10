@@ -5,3 +5,4 @@ target
 *.versionsBackup
 .classpath
 .DS_Store
+/.idea/*
