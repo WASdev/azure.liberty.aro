@@ -37,7 +37,7 @@
         <git.repo>WASdev</git.repo>
         <artifactsLocationBase>https://raw.githubusercontent.com/${git.repo}/${project.artifactId}/${git.tag}</artifactsLocationBase>
         <azure.apiVersion.aroCluster>2024-08-12-preview</azure.apiVersion.aroCluster>
-        <azure.apiVersion.deploymentScript>2023-08-01</azure.apiVersion.deploymentScri
+        <azure.apiVersion.deploymentScript>2023-08-01</azure.apiVersion.deploymentScript>
         <azure.apiVersion.deployments>2023-07-01</azure.apiVersion.deployments>
         <azure.apiVersion.roleAssignment>2022-04-01</azure.apiVersion.roleAssignment>
         <azure.apiVersion.userAssignedIdentities>2023-01-31</azure.apiVersion.userAssignedIdentities>
