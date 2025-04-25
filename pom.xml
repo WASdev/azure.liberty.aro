@@ -36,13 +36,13 @@
     <properties>
         <git.repo>WASdev</git.repo>
         <artifactsLocationBase>https://raw.githubusercontent.com/${git.repo}/${project.artifactId}/${git.tag}</artifactsLocationBase>
+        <azure.apiVersion.aroCluster>2024-08-12-preview</azure.apiVersion.aroCluster>
+        <azure.apiVersion.deploymentScript>2023-08-01</azure.apiVersion.deploymentScri
         <azure.apiVersion.deployments>2023-07-01</azure.apiVersion.deployments>
-        <azure.apiVersion.virtualNetworks>2023-06-01</azure.apiVersion.virtualNetworks>
-        <azure.apiVersion.vNetRoleAssignment>2018-09-01-preview</azure.apiVersion.vNetRoleAssignment>
-        <azure.apiVersion.aroCluster>2023-04-01</azure.apiVersion.aroCluster>
         <azure.apiVersion.roleAssignment>2022-04-01</azure.apiVersion.roleAssignment>
         <azure.apiVersion.userAssignedIdentities>2023-01-31</azure.apiVersion.userAssignedIdentities>
-        <azure.apiVersion.deploymentScript>2023-08-01</azure.apiVersion.deploymentScript>
+        <azure.apiVersion.vNetRoleAssignment>2018-09-01-preview</azure.apiVersion.vNetRoleAssignment>
+        <azure.apiVersion.virtualNetworks>2023-06-01</azure.apiVersion.virtualNetworks>pt>
         <!--Testing PID <customer.usage.attribution.id>pid-1a2a9b5a-6c82-42de-a938-9fdb6ffe8e55-partnercenter</customer.usage.attribution.id> -->
         <customer.usage.attribution.id>pid-8942a2f7-32d6-4b69-b504-4c2fb23fe059-partnercenter</customer.usage.attribution.id>
         <aro.start>acdd32ed-5fab-54b6-8d5a-097ed3dcfcf2</aro.start>
