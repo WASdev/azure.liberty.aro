@@ -96,7 +96,7 @@
                     "preValidation": "Provide required info for cluster configuration",
                     "postValidation": "Done"
                 },
-                "bladeTitle": "ARO",
+                "bladeTitle": "OpenShift",
                 "elements": [
                     {
                         "name": "createCluster",
