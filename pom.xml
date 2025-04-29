@@ -21,7 +21,7 @@
 
     <groupId>com.ibm.websphere.azure</groupId>
     <artifactId>azure.liberty.aro</artifactId>
-    <version>1.1.3</version>
+    <version>1.1.4</version>
 
     <parent>
         <groupId>com.microsoft.azure.iaas</groupId>
@@ -41,7 +41,7 @@
         <azure.apiVersion.deployments>2023-07-01</azure.apiVersion.deployments>
         <azure.apiVersion.roleAssignment>2022-04-01</azure.apiVersion.roleAssignment>
         <azure.apiVersion.userAssignedIdentities>2023-01-31</azure.apiVersion.userAssignedIdentities>
-        <azure.apiVersion.vNetRoleAssignment>2024-07-01</azure.apiVersion.vNetRoleAssignment>
+        <azure.apiVersion.vNetRoleAssignment>2022-04-01</azure.apiVersion.vNetRoleAssignment>
         <azure.apiVersion.virtualNetworks>2024-07-01</azure.apiVersion.virtualNetworks>
         <!--Testing PID <customer.usage.attribution.id>pid-1a2a9b5a-6c82-42de-a938-9fdb6ffe8e55-partnercenter</customer.usage.attribution.id> -->
         <customer.usage.attribution.id>pid-8942a2f7-32d6-4b69-b504-4c2fb23fe059-partnercenter</customer.usage.attribution.id>
