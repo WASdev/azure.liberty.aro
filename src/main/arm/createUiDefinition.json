@@ -91,9 +91,9 @@
         "steps": [
             {
                 "name": "Cluster",
-                "label": "ARO",
+                "label": "OpenShift",
                 "subLabel": {
-                    "preValidation": "Provide required info for cluster configuration",
+                    "preValidation": "Provide required info for OpenShift cluster configuration",
                     "postValidation": "Done"
                 },
                 "bladeTitle": "OpenShift",
@@ -103,7 +103,7 @@
                         "type": "Microsoft.Common.OptionsGroup",
                         "label": "Create a new cluster?",
                         "defaultValue": "Yes",
-                        "toolTip": "Select 'Yes' to create a new cluster, or select 'No' to provide an existing cluster.",
+                        "toolTip": "Select 'Yes' to create a new OpenShift cluster, or select 'No' to provide an existing OpenShift cluster.",
                         "constraints": {
                             "allowedValues": [
                                 {
@@ -121,7 +121,7 @@
                     {
                         "name": "createClusterInfo",
                         "type": "Microsoft.Common.Section",
-                        "label": "Provide information to create a new cluster",
+                        "label": "Provide information to create a new OpenShift cluster",
                         "elements": [
                             {
                                 "name": "aroVmSizeInfo",
