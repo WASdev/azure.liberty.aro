@@ -157,7 +157,7 @@ jobs:
           echo "##[set-output name=artifactName;]${artifactName}"
           echo "##[set-output name=artifactPath;]${{ env.repoName }}/target/$artifactName"
       - name: Archive ${{ env.repoName }} template
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         if: success()
         with:
           name: ${{steps.artifact_file.outputs.artifactName}}
