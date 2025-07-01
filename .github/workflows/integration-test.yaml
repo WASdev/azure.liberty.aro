@@ -113,13 +113,14 @@ jobs:
           cd ${{ env.repoName }}
           
           if ${{ env.createCluster == 'false' }}; then
-            echo "Deploy with existing ARO cluster"
+            echo "Deploy with an existing ARO cluster"
             createCluster="false"
             clusterName=${{ env.clusterName }}
             clusterRGName=${{ env.testResourceGroup }}
           else
-            echo "Deploy with new ARO cluster"
+            echo "Deploy with a new ARO cluster"
             createCluster="true"
+            clusterName=
           fi
           mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME -DcreateCluster=true \
             -DdeployWLO=${deployWLO} -Dedition="IBM WebSphere Application Server" -DproductEntitlementSource="Standalone" \
