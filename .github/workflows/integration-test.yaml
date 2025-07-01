@@ -121,10 +121,12 @@ jobs:
             echo "Deploy with a new ARO cluster"
             createCluster="true"
             clusterName="aro-cluster-${{ github.run_id }}-${{ github.run_number }}"
+            clusterRGName=${{ env.testResourceGroup }}
           fi
           mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME \
             -DcreateCluster=${createCluster} \
             -DclusterName=${clusterName} \
+            -DclusterRGName=${clusterRGName} \
             -DdeployWLO=${deployWLO} -Dedition="IBM WebSphere Application Server" -DproductEntitlementSource="Standalone" \
             -DdeployApplication=${deployApplication} -DappImagePath=${{ inputs.appImagePath }} -DautoScalingParam=${autoScaling} -DappReplicas=2 \
             -Dtest.args="-Test All" -Passembly -Ptemplate-validation-tests clean install
