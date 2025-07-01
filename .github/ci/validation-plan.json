@@ -7,7 +7,6 @@
         {
           "scenario": "Deploy with Existing ARO Cluster",
           "inputs": {
-            "databaseType": "none",
             "configurations_for_ci": {
               "createCluster": "false",
               "clusterName": "my-existing-aro-cluster"
