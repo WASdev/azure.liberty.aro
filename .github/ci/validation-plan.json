@@ -1,0 +1,24 @@
+{
+  "validation_scenarios": [
+    {
+      "workflow": "integration-test.yaml",
+      "scenarios": [
+        {
+          "scenario": "Deploy with existing WebSphere entitlement",
+          "inputs": {
+            "databaseType": "none",
+            "configurations_for_ci": {
+              "entitled": "true"
+            }
+          }
+        },
+        {
+          "scenario": "Deploy with passwordless SQL Server",
+          "inputs": {
+            "databaseType": "sqlserver-passwordless"
+          }
+        }
+      ]
+    }
+  ]
+}
