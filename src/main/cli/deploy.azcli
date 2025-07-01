@@ -138,9 +138,11 @@ resourceGroupLocation=$( az group show --name $resourceGroupName | jq -r '.locat
 # Read pull secret file
 if [ -f "$pullSecretFile" ]; then
 	pullSecret=$( cat "$pullSecretFile" | jq -c '.' )
+	echo "Using pull secret from file: $pullSecretFile"
 # Set as empty if pull secret string is not provided either
 elif [ -n "$pullSecretEncoded" ]; then
 	pullSecret=$( echo $pullSecretEncoded | base64 -d | jq -c '.' )
+	echo "Using pull secret from encoded string"
 else
 	pullSecret="{}"
 fi
