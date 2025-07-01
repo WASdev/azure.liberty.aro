@@ -2,20 +2,16 @@
   "validation_scenarios": [
     {
       "workflow": "integration-test.yaml",
+      "run_mode": "serial",
       "scenarios": [
         {
-          "scenario": "Deploy with existing WebSphere entitlement",
+          "scenario": "Deploy with Existing ARO Cluster",
           "inputs": {
             "databaseType": "none",
             "configurations_for_ci": {
-              "entitled": "true"
+              "createCluster": "false",
+              "clusterName": "my-existing-aro-cluster"
             }
-          }
-        },
-        {
-          "scenario": "Deploy with passwordless SQL Server",
-          "inputs": {
-            "databaseType": "sqlserver-passwordless"
           }
         }
       ]
