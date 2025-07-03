@@ -570,6 +570,7 @@
                         "value": "[parameters('requestCPUMillicore')]"
                     }
                 ],
+                "timeout": "PT2H",
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
             }

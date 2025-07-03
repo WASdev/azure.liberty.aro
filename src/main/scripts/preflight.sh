@@ -16,6 +16,19 @@
 #  limitations under the License.
 
 set -Euo pipefail
+
+# Test Azure CLI authentication
+echo "Testing Azure CLI authentication..."
+az account show > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "Azure CLI authentication test failed. Attempting to authenticate with managed identity..."
+    az login --identity
+    if [ $? -ne 0 ]; then
+        echo "Failed to authenticate with managed identity." >&2
+        exit 1
+    fi
+fi
+echo "Azure CLI authentication successful."
 # Check if image specified by SOURCE_IMAGE_PATH is publically accessible and supports amd64 architecture
 if [[ "${DEPLOY_APPLICATION,,}" == "true" ]]; then
   # Install docker-cli to inspect the image
