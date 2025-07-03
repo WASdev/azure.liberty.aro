@@ -165,8 +165,19 @@ jobs:
             -c ${clientId} -s ${clientSecret} -a ${aadObjectId} -r ${rpObjectId}
       - name: Verify the deployment
         run: |
-          clusterName=$(az deployment group show -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} --query 'properties.outputs.clusterName.value' -o tsv)
-          appEndpoint=$(az resource show -n aroscript${clusterName:7} -g ${{ env.testResourceGroup }} --resource-type Microsoft.Resources/deploymentScripts --query "properties.outputs.appEndpoint" -o tsv)
+          resourceNamePrefix="aroscript"
+          echo "Looking for resources with prefix: ${resourceNamePrefix}"
+          
+          # Find the resource that starts with the prefix
+          resourceName=$(az resource list -g ${{ env.testResourceGroup }} --resource-type Microsoft.Resources/deploymentScripts --query "[?starts_with(name, '${resourceNamePrefix}')].name" -o tsv | head -1)
+          echo "Found resource: ${resourceName}"
+          
+          if [[ -z "$resourceName" ]]; then
+            echo "No resource found with prefix: ${resourceNamePrefix}"
+            exit 1
+          fi
+          
+          appEndpoint=$(az resource show -n ${resourceName} -g ${{ env.testResourceGroup }} --resource-type Microsoft.Resources/deploymentScripts --query "properties.outputs.appEndpoint" -o tsv)
           echo "appEndpoint: ${appEndpoint}"
           if [[ $deployApplication == "true" ]]; then
             if [[ -z "$appEndpoint" ]]; then
