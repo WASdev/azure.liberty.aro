@@ -7,6 +7,7 @@
         {
           "scenario": "Deploy with Existing ARO Cluster",
           "inputs": {
+            "deleteAzureResources": false,
             "configurations_for_ci": {
               "createCluster": "false",
               "clusterName": "my-existing-aro-cluster"
