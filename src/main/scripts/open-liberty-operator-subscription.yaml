@@ -24,4 +24,4 @@ spec:
   name: open-liberty-certified
   source: certified-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: open-liberty-operator.v1.4.2
+  startingCSV: open-liberty-operator.v1.4.3
