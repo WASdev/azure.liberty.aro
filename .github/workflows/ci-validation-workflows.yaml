@@ -1,3 +1,5 @@
+# Copyright (c) IBM Corporation.
+# Copyright (c) Microsoft Corporation.
 name: CI Validation for Liberty ARO
 run-name: Running validation workflows for liberty-aro
 
