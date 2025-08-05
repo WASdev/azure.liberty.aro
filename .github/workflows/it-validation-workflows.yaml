@@ -1,6 +1,6 @@
 # Copyright (c) IBM Corporation.
 # Copyright (c) Microsoft Corporation.
-name: CI Validation for Liberty ARO
+name: IT Validation for Liberty ARO
 run-name: Running validation workflows for liberty-aro
 
 on:
@@ -8,7 +8,7 @@ on:
     - cron: '0 4 1 * *'  # Runs on the 1st of every month at 4:00 AM UTC
   workflow_dispatch:
     inputs:
-      ci_plan:
+      it_plan:
         description: 'Path to the validation plan file'
         required: true
         type: choice
@@ -20,30 +20,30 @@ jobs:
   execute-validation:
     runs-on: ubuntu-latest
     outputs:
-      results: ${{ steps.ci-validation.outputs.results }}
-      report_url: ${{ steps.ci-validation.outputs.report_url }}
+      results: ${{ steps.it-validation.outputs.results }}
+      report_url: ${{ steps.it-validation.outputs.report_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # in case of multiple validation plans in the .github/ci directory, this step can be modified to select the appropriate plan
+      # in case of multiple validation plans in the .github/it directory, this step can be modified to select the appropriate plan
       - name: Set validation plan file
         id: set-plan-file
         run: |
-          case "${{ inputs.ci_plan || 'integration-test' }}" in
+          case "${{ inputs.it_plan || 'integration-test' }}" in
             integration-test)
-              CI_FILE=".github/ci/validation-plan.json"
+              IT_FILE=".github/it/validation-plan.json"
               ;;
             *)
-              echo "Unknown plan option: ${{ inputs.ci_plan }}"
+              echo "Unknown plan option: ${{ inputs.it_plan }}"
               exit 1
               ;;
           esac
-          echo "ci_file=$CI_FILE" >> $GITHUB_OUTPUT
+          echo "it_file=$IT_FILE" >> $GITHUB_OUTPUT
       
       - name: Execute CI Validation
-        id: ci-validation
-        uses: ./.github/actions/ci
+        id: it-validation
+        uses: ./.github/actions/it
         with:
-          ci_file: ${{ steps.set-plan-file.outputs.ci_file }}
+          it_file: ${{ steps.set-plan-file.outputs.it_file }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

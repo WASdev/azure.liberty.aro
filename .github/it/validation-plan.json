@@ -9,7 +9,7 @@
           "inputs": {
             "deleteAzureResources": true,
             "deployWLO": true,
-            "configurations_for_ci": {
+            "configurations_for_it": {
               "createCluster": "false",
               "clusterName": "my-existing-aro-cluster"
             }
