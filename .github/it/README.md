@@ -1,12 +1,12 @@
 
 # IT Validation Configuration
 
-This directory contains JSON configuration files that define validation scenarios for the CI validation orchestrator. The validation system uses a reusable GitHub Action located at `.github/actions/it/action.yml` to execute these plans and trigger the corresponding workflows for Java applications with Open Liberty/WebSphere Liberty on Azure Red Hat OpenShift (ARO) clusters.
+This directory contains JSON configuration files that define validation scenarios for the IT validation orchestrator. The validation system uses a reusable GitHub Action located at `.github/actions/it/action.yml` to execute these plans and trigger the corresponding workflows for Java applications with Open Liberty/WebSphere Liberty on Azure Red Hat OpenShift (ARO) clusters.
 
 
 ## Overview
 
-The CI validation system is a comprehensive integration testing framework designed to validate Java application deployments with Open Liberty/WebSphere Liberty on Azure Red Hat OpenShift (ARO) clusters across multiple scenarios and configurations. It automates the execution of various deployment scenarios, monitors their progress, and generates detailed reports to ensure the reliability and quality of the Azure Liberty ARO templates and scripts.
+The IT validation system is a comprehensive integration testing framework designed to validate Java application deployments with Open Liberty/WebSphere Liberty on Azure Red Hat OpenShift (ARO) clusters across multiple scenarios and configurations. It automates the execution of various deployment scenarios, monitors their progress, and generates detailed reports to ensure the reliability and quality of the Azure Liberty ARO templates and scripts.
 
 
 ### Key Features
