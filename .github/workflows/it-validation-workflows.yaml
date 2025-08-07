@@ -5,7 +5,7 @@ run-name: Running validation workflows for liberty-aro
 
 on:
   schedule:
-    - cron: '0 4 1 * *'  # Runs on the 1st of every month at 4:00 AM UTC
+    - cron: '0 4 * * 1' # Every Monday at 04:00 UTC
   workflow_dispatch:
     inputs:
       it_plan:
