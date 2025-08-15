@@ -33,6 +33,10 @@ on:
         required: true
         type: string
         default: 'eastus'
+      configurations_for_it:
+        description: "JSON string of environment variables used for IT"
+        required: false
+        default: '{}'
   # Allows you to run this workflow using GitHub workflow dispatch APIs
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
@@ -57,6 +61,7 @@ env:
 jobs:
   integration-test:
     runs-on: ubuntu-latest
+    env: ${{ fromJson(inputs.configurations_for_it) }}
     outputs:
       clientId: ${{ steps.deploy.outputs.clientId }}
     steps:
@@ -106,7 +111,22 @@ jobs:
             autoScaling=true
           fi
           cd ${{ env.repoName }}
-          mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME -DcreateCluster=true \
+          
+          if ${{ env.createCluster == 'false' }}; then
+            echo "Deploy with an existing ARO cluster"
+            createCluster="false"
+            clusterName=${{ env.clusterName }}
+            clusterRGName=${{ env.testResourceGroup }}
+          else
+            echo "Deploy with a new ARO cluster"
+            createCluster="true"
+            clusterName="aro-cluster-${{ github.run_id }}-${{ github.run_number }}"
+            clusterRGName=${{ env.testResourceGroup }}
+          fi
+          mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME \
+            -DcreateCluster=${createCluster} \
+            -DclusterName=${clusterName} \
+            -DclusterRGName=${clusterRGName} \
             -DdeployWLO=${deployWLO} -Dedition="IBM WebSphere Application Server" -DproductEntitlementSource="Standalone" \
             -DdeployApplication=${deployApplication} -DappImagePath=${{ inputs.appImagePath }} -DautoScalingParam=${autoScaling} -DappReplicas=2 \
             -Dtest.args="-Test All" -Passembly -Ptemplate-validation-tests clean install
@@ -114,15 +134,30 @@ jobs:
         id: azure-login
         with:
           creds: ${{ env.azureCredentials }}
+      - name: Provision ARO Cluster as an existing cluster for deployment
+        if: ${{ env.createCluster == 'false' }}
+        run: |
+          echo "Provisioning an ARO cluster: ${{ env.clusterName }} as an existing cluster for deployment"
+          VIRTUALNETWORK=vnet-for-existing-aro-cluster
+          az group create --name ${{ env.testResourceGroup }} --location ${{ env.location }}
+          az network vnet create --resource-group ${{ env.testResourceGroup }} --name $VIRTUALNETWORK --address-prefixes 10.0.0.0/22
+          az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name master-subnet --address-prefixes 10.0.0.0/23
+          az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name worker-subnet --address-prefixes 10.0.2.0/23
+          az aro create --resource-group ${{ env.testResourceGroup }} --name ${{ env.clusterName }} --vnet $VIRTUALNETWORK --master-subnet master-subnet --worker-subnet worker-subnet
+
       - name: Start the deployment
         id: deploy
         run: |
           servicePrincipal=$(az ad sp create-for-rbac --sdk-auth)
+          echo "Trying to get clientId from service principal"
           clientId=$(echo $servicePrincipal | jq -r '.clientId')
           echo "clientId=${clientId}" >> $GITHUB_ENV
           echo "clientId=${clientId}" >> "$GITHUB_OUTPUT"
+          echo "Trying to get clientSecret from service principal"
           clientSecret=$(echo $servicePrincipal | jq -r '.clientSecret')
+          echo "Trying to get aadObjectId from service principal"
           aadObjectId=$(az ad sp show --id ${clientId} --query id -o tsv)
+          echo "Trying to get rpObjectId from service principal"
           rpObjectId=$(az ad sp list --display-name "Azure Red Hat OpenShift RP" --query [0].id -o tsv)
           cd ${{ env.repoName }}/target/cli
           chmod a+x deploy.azcli
@@ -130,8 +165,19 @@ jobs:
             -c ${clientId} -s ${clientSecret} -a ${aadObjectId} -r ${rpObjectId}
       - name: Verify the deployment
         run: |
-          clusterName=$(az deployment group show -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} --query 'properties.outputs.clusterName.value' -o tsv)
-          appEndpoint=$(az resource show -n aroscript${clusterName:7} -g ${{ env.testResourceGroup }} --resource-type Microsoft.Resources/deploymentScripts --query "properties.outputs.appEndpoint" -o tsv)
+          resourceNamePrefix="aroscript"
+          echo "Looking for resources with prefix: ${resourceNamePrefix}"
+          
+          # Find the resource that starts with the prefix
+          resourceName=$(az resource list -g ${{ env.testResourceGroup }} --resource-type Microsoft.Resources/deploymentScripts --query "[?starts_with(name, '${resourceNamePrefix}')].name" -o tsv | head -1)
+          echo "Found resource: ${resourceName}"
+          
+          if [[ -z "$resourceName" ]]; then
+            echo "No resource found with prefix: ${resourceNamePrefix}"
+            exit 1
+          fi
+          
+          appEndpoint=$(az resource show -n ${resourceName} -g ${{ env.testResourceGroup }} --resource-type Microsoft.Resources/deploymentScripts --query "properties.outputs.appEndpoint" -o tsv)
           echo "appEndpoint: ${appEndpoint}"
           if [[ $deployApplication == "true" ]]; then
             if [[ -z "$appEndpoint" ]]; then
