@@ -8,7 +8,7 @@
 * [Liberty on AKS](https://github.com/WASdev/azure.liberty.aks)
 
 # Integration tests report
-[![IT Validation Workflows](https://github.com/WASdev/azure.liberty.aro/actions/workflows/it-validation-workflows.yaml/badge.svg)](https://github.com/WASdev/azure.liberty.aro/actions/workflows/it-validation-workflows.yaml)
+[![IT Validation Workflows](https://github.com/azure-javaee/azure.liberty.aro/actions/workflows/it-validation-workflows.yaml/badge.svg)](https://github.com/azure-javaee/azure.liberty.aro/actions/workflows/it-validation-workflows.yaml)
 
 # Deploy a Java application with Open Liberty/WebSphere Liberty on an Azure Red Hat OpenShift 4 cluster
 
