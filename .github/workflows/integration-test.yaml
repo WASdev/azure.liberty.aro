@@ -32,7 +32,7 @@ on:
         description: 'Location of the Azure resources'
         required: true
         type: string
-        default: 'eastus'
+        default: 'westus3'
       configurations_for_it:
         description: "JSON string of environment variables used for IT"
         required: false
@@ -57,7 +57,7 @@ env:
   msTeamsWebhook: ${{ secrets.MSTEAMS_WEBHOOK }}
   testResourceGroup: libertyAroTestRG-${{ github.repository_owner }}-${{ github.run_id }}-${{ github.run_number }}
   testDeploymentName: libertyAroTestDeployment-${{ github.run_id }}-${{ github.run_number }}
-  location: ${{ github.event.inputs.location || 'eastus' }}
+  location: ${{ github.event.inputs.location || 'westus3' }}
 jobs:
   integration-test:
     runs-on: ubuntu-latest
