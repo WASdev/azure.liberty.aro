@@ -138,6 +138,8 @@ jobs:
         if: ${{ env.createCluster == 'false' }}
         run: |
           echo "Provisioning an ARO cluster: ${{ env.clusterName }} as an existing cluster for deployment"
+          echo "azure cli verion"
+          az version
           VIRTUALNETWORK=vnet-for-existing-aro-cluster
           az group create --name ${{ env.testResourceGroup }} --location ${{ env.location }}
           az network vnet create --resource-group ${{ env.testResourceGroup }} --name $VIRTUALNETWORK --address-prefixes 10.0.0.0/22
