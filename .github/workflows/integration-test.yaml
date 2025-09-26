@@ -144,7 +144,7 @@ jobs:
           echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
           sudo apt-get update
           AZ_DIST=$(lsb_release -cs)
-          AZ_VER=2.51.0
+          AZ_VER=2.76.0
           sudo apt-get install azure-cli=${AZ_VER}-1~${AZ_DIST}
           shell: bash          
       - name: Provision ARO Cluster as an existing cluster for deployment
