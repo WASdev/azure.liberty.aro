@@ -144,7 +144,17 @@ jobs:
           az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name master-subnet --address-prefixes 10.0.0.0/23
           az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name worker-subnet --address-prefixes 10.0.2.0/23
           az aro create --resource-group ${{ env.testResourceGroup }} --name ${{ env.clusterName }} --vnet $VIRTUALNETWORK --master-subnet master-subnet --worker-subnet worker-subnet
-
+      - name: Install specific Azure CLI version
+        run: |
+          AZURE_CLI_VERSION=2.76.0  # <-- Set your desired version here
+          sudo apt-get update
+          sudo apt-get remove --yes azure-cli
+          curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+          sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
+          echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
+          sudo apt-get update
+          sudo apt-get install --yes azure-cli=$AZURE_CLI_VERSION-1
+          shell: bash
       - name: Start the deployment
         id: deploy
         run: |
