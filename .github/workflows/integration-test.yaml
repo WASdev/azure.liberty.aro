@@ -143,7 +143,9 @@ jobs:
           sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
           echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
           sudo apt-get update
-          sudo apt-get install --yes azure-cli=$AZURE_CLI_VERSION-1
+          AZ_DIST=$(lsb_release -cs)
+          AZ_VER=2.51.0
+          sudo apt-get install azure-cli=${AZ_VER}-1~${AZ_DIST}
           shell: bash          
       - name: Provision ARO Cluster as an existing cluster for deployment
         if: ${{ env.createCluster == 'false' }}
