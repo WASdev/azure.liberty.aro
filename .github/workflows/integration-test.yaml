@@ -145,8 +145,7 @@ jobs:
           sudo apt-get update
           AZ_DIST=$(lsb_release -cs)
           AZ_VER=2.76.0
-          sudo apt-get install azure-cli=${AZ_VER}-1~${AZ_DIST}
-          shell: bash          
+          sudo apt-get install azure-cli=${AZ_VER}-1~${AZ_DIST}         
       - name: Provision ARO Cluster as an existing cluster for deployment
         if: ${{ env.createCluster == 'false' }}
         run: |
