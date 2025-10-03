@@ -32,7 +32,7 @@ on:
         description: 'Location of the Azure resources'
         required: true
         type: string
-        default: 'northcentralus'
+        default: 'westcentralus'
       configurations_for_it:
         description: "JSON string of environment variables used for IT"
         required: false
@@ -57,7 +57,7 @@ env:
   msTeamsWebhook: ${{ secrets.MSTEAMS_WEBHOOK }}
   testResourceGroup: libertyAroTestRG-${{ github.repository_owner }}-${{ github.run_id }}-${{ github.run_number }}
   testDeploymentName: libertyAroTestDeployment-${{ github.run_id }}-${{ github.run_number }}
-  location: ${{ github.event.inputs.location || 'northcentralus' }}
+  location: ${{ github.event.inputs.location || 'westcentralus' }}
 jobs:
   integration-test:
     runs-on: ubuntu-latest
@@ -273,3 +273,4 @@ jobs:
             az group delete -n ${{ env.testResourceGroup }} --yes
             echo "delete app with clientId: " ${{ needs.integration-test.outputs.clientId }}
             az ad app delete --id ${{ needs.integration-test.outputs.clientId }}
+
