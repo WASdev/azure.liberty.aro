@@ -456,7 +456,8 @@
                     "domain": "[variables('const_clusterDomainName')]",
                     "resourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', concat('MC_', resourceGroup().name, '_', variables('name_clusterName'), '_', parameters('location')))]",
                     "pullSecret": "[parameters('pullSecret')]",
-                    "fipsValidatedModules": "Disabled"
+                    "fipsValidatedModules": "Disabled",
+                    "version": "4.17.27"
                 },
                 "networkProfile": {
                     "podCidr": "10.128.0.0/14",
