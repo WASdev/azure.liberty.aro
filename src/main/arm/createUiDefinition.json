@@ -718,7 +718,7 @@
                         "resources": [
                             "${identifier.virtualNetworks}",
                             "${identifier.deploymentScripts}",
-                            "${identifier.deployments}",
+                            "${identifier.resourcesDeployment}",
                             "${identifier.userAssignedIdentities}",
                             "${identifier.openShiftClusters}"                               
 
