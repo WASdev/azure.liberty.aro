@@ -707,7 +707,26 @@
                         "visible": "[and(bool(steps('Application').deployApplication), not(bool(steps('Application').autoScaling)))]"
                     }
                 ]
-            }
+            },
+            {
+                "name": "section_tags",
+                "label": "Tags",
+                "elements": [
+                    {
+                        "name": "tagsByResource",
+                        "type": "Microsoft.Common.TagsByResource",
+                        "resources": [
+                            "${identifier.virtualNetworks}",
+                            "${identifier.deploymentScripts}",
+                            "${identifier.resourcesDeployment}",
+                            "${identifier.userAssignedIdentities}",
+                            "${identifier.openShiftClusters}"                               
+
+                        ],
+                        "toolTip": "Tags help you organize your resources and categorize them for billing or management purposes. You can apply tags to resources deployed by the offer."
+                    }
+                ]
+            }            
         ],
         "outputs": {
             "location": "[location()]",
@@ -733,7 +752,8 @@
             "minReplicas": "[int(steps('Application').minReplicas)]",
             "maxReplicas": "[int(steps('Application').maxReplicas)]",
             "requestCPUMillicore": "[int(steps('Application').requestCPUMillicore)]",
-            "appReplicas": "[int(steps('Application').appReplicas)]"
+            "appReplicas": "[int(steps('Application').appReplicas)]",
+            "tagsByResource": "[steps('section_tags').tagsByResource]"
         }
     }
 }
