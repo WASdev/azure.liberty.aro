@@ -152,10 +152,15 @@ jobs:
           echo "Provisioning an ARO cluster: ${{ env.clusterName }} as an existing cluster for deployment"
           VIRTUALNETWORK=vnet-for-existing-aro-cluster
           az group create --name ${{ env.testResourceGroup }} --location ${{ env.location }}
+          echo "az group created"
           az network vnet create --resource-group ${{ env.testResourceGroup }} --name $VIRTUALNETWORK --address-prefixes 10.0.0.0/22
+          echo "network vnet created"
           az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name master-subnet --address-prefixes 10.0.0.0/23
+          echo "network vnet subnet created master"
           az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name worker-subnet --address-prefixes 10.0.2.0/23
+          echo "network vnet subnet created worker"
           az aro create --resource-group ${{ env.testResourceGroup }} --name ${{ env.clusterName }} --vnet $VIRTUALNETWORK --master-subnet master-subnet --worker-subnet worker-subnet
+          echo "resource group created"
       - name: Start the deployment
         id: deploy
         run: |
@@ -273,3 +278,4 @@ jobs:
             az group delete -n ${{ env.testResourceGroup }} --yes
             echo "delete app with clientId: " ${{ needs.integration-test.outputs.clientId }}
             az ad app delete --id ${{ needs.integration-test.outputs.clientId }}
+
