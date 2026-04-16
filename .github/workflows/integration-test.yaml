@@ -164,13 +164,13 @@ jobs:
       - name: Start the deployment
         id: deploy
         run: |
-          servicePrincipal=$(az ad sp create-for-rbac --sdk-auth)
+          servicePrincipal=$(az ad sp create-for-rbac)
           echo "Trying to get clientId from service principal"
-          clientId=$(echo $servicePrincipal | jq -r '.clientId')
+          clientId=$(echo $servicePrincipal | jq -r '.appId')
           echo "clientId=${clientId}" >> $GITHUB_ENV
           echo "clientId=${clientId}" >> "$GITHUB_OUTPUT"
           echo "Trying to get clientSecret from service principal"
-          clientSecret=$(echo $servicePrincipal | jq -r '.clientSecret')
+          clientSecret=$(echo $servicePrincipal | jq -r '.password')
           echo "Trying to get aadObjectId from service principal"
           aadObjectId=$(az ad sp show --id ${clientId} --query id -o tsv)
           echo "Trying to get rpObjectId from service principal"
