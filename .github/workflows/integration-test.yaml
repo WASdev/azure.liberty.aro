@@ -171,14 +171,59 @@ jobs:
           echo "clientId=${clientId}" >> "$GITHUB_OUTPUT"
           echo "Trying to get clientSecret from service principal"
           clientSecret=$(echo $servicePrincipal | jq -r '.password')
+
+          # Wait for Azure AD replication
+          echo "Waiting for Azure AD to replicate the service principal..."
+          sleep 20
+    
+          # Retry logic for fetching aadObjectId
           echo "Trying to get aadObjectId from service principal"
-          aadObjectId=$(az ad sp show --id ${clientId} --query id -o tsv)
+          for i in {1..15}; do
+            aadObjectId=$(az ad sp show --id ${clientId} --query id -o tsv 2>/dev/null)
+            if [[ -n "$aadObjectId" && "$aadObjectId" != "None" ]]; then
+              echo "Successfully retrieved aadObjectId: $aadObjectId"
+              break
+            fi
+            if [ $i -lt 15 ]; then
+              echo "Attempt $i failed, retrying in 20 seconds..."
+              sleep 20
+            else
+            echo "Failed to retrieve aadObjectId after 15 attempts"
+              exit 1
+            fi
+          done          
+
           echo "Trying to get rpObjectId from service principal"
           rpObjectId=$(az ad sp list --display-name "Azure Red Hat OpenShift RP" --query [0].id -o tsv)
           cd ${{ env.repoName }}/target/cli
           chmod a+x deploy.azcli
+          
+          # Add deployment error capture
+          set +e
           ./deploy.azcli -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} -l ${{ env.location }} -t ${{ env.pullSecretEncoded }} \
             -c ${clientId} -s ${clientSecret} -a ${aadObjectId} -r ${rpObjectId}
+          DEPLOY_EXIT_CODE=$?
+          set -e
+
+          if [ $DEPLOY_EXIT_CODE -ne 0 ]; then
+            echo "Deployment failed with exit code: $DEPLOY_EXIT_CODE"
+            az deployment group show -n ${{ env.testDeploymentName }} -g ${{ env.testResourceGroup }} --query "{state:properties.provisioningState, errors:properties.error}" || true
+            exit $DEPLOY_EXIT_CODE
+          fi
+      - name: Retrieve deployment error details
+        if: failure()
+        run: |
+          echo "=== Deployment Details ==="
+          az deployment group show \
+            -n ${{ env.testDeploymentName }} \
+            -g ${{ env.testResourceGroup }} \
+            --query 'properties.error' -o json
+    
+          echo "=== Operation List ==="
+          az deployment operation group list \
+            -n ${{ env.testDeploymentName }} \
+            -g ${{ env.testResourceGroup }} \
+            --query "[?properties.provisioningState=='Failed']" -o json 
       - name: Verify the deployment
         run: |
           resourceNamePrefix="aroscript"
