@@ -159,6 +159,7 @@ jobs:
           echo "network vnet subnet created master"
           az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name worker-subnet --address-prefixes 10.0.2.0/23
           echo "network vnet subnet created worker"
+          sleep 60
           az aro create --resource-group ${{ env.testResourceGroup }} --name ${{ env.clusterName }} --vnet $VIRTUALNETWORK --master-subnet master-subnet --worker-subnet worker-subnet
           echo "resource group created"
       - name: Start the deployment
