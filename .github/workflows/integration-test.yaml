@@ -373,7 +373,7 @@ jobs:
         if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deleteAzureResources) || (github.event_name == 'repository_dispatch' && github.event.client_payload.deleteAzureResources) }}
         run: |
             echo "delete resource group: " ${{ env.testResourceGroup }}
-            az group delete -n ${{ env.testResourceGroup }} --yes
+            #az group delete -n ${{ env.testResourceGroup }} --yes
             echo "delete app with clientId: " ${{ needs.integration-test.outputs.clientId }}
-            az ad app delete --id ${{ needs.integration-test.outputs.clientId }}
+            #az ad app delete --id ${{ needs.integration-test.outputs.clientId }}
 
