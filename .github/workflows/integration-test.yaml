@@ -160,8 +160,60 @@ jobs:
           az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name worker-subnet --address-prefixes 10.0.2.0/23
           echo "network vnet subnet created worker"
           sleep 60
-          az aro create --resource-group ${{ env.testResourceGroup }} --name ${{ env.clusterName }} --vnet $VIRTUALNETWORK --master-subnet master-subnet --worker-subnet worker-subnet
-          echo "resource group created"
+          
+          # Retry logic for ARO cluster creation with error checking
+          echo "Creating ARO cluster: ${{ env.clusterName }}"
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          RETRY_DELAY=60
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES to create ARO cluster..."
+            
+            if az aro create \
+              --resource-group ${{ env.testResourceGroup }} \
+              --name ${{ env.clusterName }} \
+              --vnet $VIRTUALNETWORK \
+              --master-subnet master-subnet \
+              --worker-subnet worker-subnet; then
+              
+              # Verify cluster was created successfully
+              echo "Verifying ARO cluster creation..."
+              CLUSTER_STATE=$(az aro show \
+                --resource-group ${{ env.testResourceGroup }} \
+                --name ${{ env.clusterName }} \
+                --query provisioningState -o tsv 2>/dev/null)
+              
+              if [[ "$CLUSTER_STATE" == "Succeeded" ]]; then
+                echo "ARO cluster created successfully with state: $CLUSTER_STATE"
+                break
+              else
+                echo "Warning: Cluster created but state is: $CLUSTER_STATE"
+                if [ $RETRY_COUNT -lt $((MAX_RETRIES - 1)) ]; then
+                  echo "Waiting ${RETRY_DELAY} seconds before retry..."
+                  sleep $RETRY_DELAY
+                  RETRY_DELAY=$((RETRY_DELAY * 2))  # Exponential backoff
+                fi
+              fi
+            else
+              echo "Error: ARO cluster creation failed on attempt $((RETRY_COUNT + 1))"
+              if [ $RETRY_COUNT -lt $((MAX_RETRIES - 1)) ]; then
+                echo "Waiting ${RETRY_DELAY} seconds before retry..."
+                sleep $RETRY_DELAY
+                RETRY_DELAY=$((RETRY_DELAY * 2))  # Exponential backoff
+              fi
+            fi
+            
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+          done
+          
+          # Final verification
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "Error: Failed to create ARO cluster after $MAX_RETRIES attempts"
+            exit 1
+          fi
+          
+          echo "ARO cluster provisioning completed successfully"
       - name: Start the deployment
         id: deploy
         run: |
