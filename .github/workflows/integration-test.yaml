@@ -209,7 +209,7 @@ jobs:
           echo "Sleeping for 2 mins..."
           sleep 120
           echo "Getting service principal..."
-          servicePrincipal=$(az ad sp create-for-rbac --scopes /subscriptions/${{ env.subscriptionID }} --role Contributor)
+          servicePrincipal=$(az ad sp create-for-rbac --scopes /subscriptions/${{ env.subscriptionID }} --role owner)
           echo "Trying to get clientId from service principal"
           clientId=$(echo $servicePrincipal | jq -r '.appId')
           echo "clientId=${clientId}" >> $GITHUB_ENV
