@@ -205,6 +205,9 @@ jobs:
       - name: Start the deployment
         id: deploy
         run: |
+          echo "Sleeping for 2 mins..."
+          sleep 120
+          echo "Getting service principal..."
           servicePrincipal=$(az ad sp create-for-rbac)
           echo "Trying to get clientId from service principal"
           clientId=$(echo $servicePrincipal | jq -r '.appId')
