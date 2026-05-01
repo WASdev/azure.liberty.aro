@@ -58,6 +58,7 @@ env:
   testResourceGroup: libertyAroTestRG-${{ github.repository_owner }}-${{ github.run_id }}-${{ github.run_number }}
   testDeploymentName: libertyAroTestDeployment-${{ github.run_id }}-${{ github.run_number }}
   location: ${{ github.event.inputs.location || 'westus3' }}
+  servicePrincipal: ${{secrets.SERVICE_PRINCIPAL}}
 jobs:
   integration-test:
     runs-on: ubuntu-latest
@@ -133,19 +134,7 @@ jobs:
       - uses: azure/login@v1
         id: azure-login
         with:
-          creds: ${{ env.azureCredentials }}
-      - name: Install specific Azure CLI version
-        run: |
-          AZURE_CLI_VERSION=2.76.0  # <-- Set your desired version here
-          sudo apt-get update
-          sudo apt-get remove --yes azure-cli
-          curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-          sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
-          echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
-          sudo apt-get update
-          AZ_DIST=$(lsb_release -cs)
-          AZ_VER=2.76.0
-          sudo apt-get install azure-cli=${AZ_VER}-1~${AZ_DIST}         
+          creds: ${{ env.azureCredentials }}       
       - name: Provision ARO Cluster as an existing cluster for deployment
         if: ${{ env.createCluster == 'false' }}
         run: |
@@ -159,12 +148,68 @@ jobs:
           echo "network vnet subnet created master"
           az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name worker-subnet --address-prefixes 10.0.2.0/23
           echo "network vnet subnet created worker"
-          az aro create --resource-group ${{ env.testResourceGroup }} --name ${{ env.clusterName }} --vnet $VIRTUALNETWORK --master-subnet master-subnet --worker-subnet worker-subnet
-          echo "resource group created"
+          sleep 60
+          
+          # Retry logic for ARO cluster creation with error checking
+          echo "Creating ARO cluster: ${{ env.clusterName }}"
+          MAX_RETRIES=5
+          RETRY_COUNT=0
+          RETRY_DELAY=60
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES to create ARO cluster..."
+            
+            if az aro create \
+              --resource-group ${{ env.testResourceGroup }} \
+              --name ${{ env.clusterName }} \
+              --vnet $VIRTUALNETWORK \
+              --master-subnet master-subnet \
+              --worker-subnet worker-subnet; then
+              
+              # Verify cluster was created successfully
+              echo "Verifying ARO cluster creation..."
+              CLUSTER_STATE=$(az aro show \
+                --resource-group ${{ env.testResourceGroup }} \
+                --name ${{ env.clusterName }} \
+                --query provisioningState -o tsv 2>/dev/null)
+              
+              if [[ "$CLUSTER_STATE" == "Succeeded" ]]; then
+                echo "ARO cluster created successfully with state: $CLUSTER_STATE"
+                break
+              else
+                echo "Warning: Cluster created but state is: $CLUSTER_STATE"
+                if [ $RETRY_COUNT -lt $((MAX_RETRIES - 1)) ]; then
+                  echo "Waiting ${RETRY_DELAY} seconds before retry..."
+                  sleep $RETRY_DELAY
+                  RETRY_DELAY=$((RETRY_DELAY * 2))  # Exponential backoff
+                fi
+              fi
+            else
+              echo "Error: ARO cluster creation failed on attempt $((RETRY_COUNT + 1))"
+              if [ $RETRY_COUNT -lt $((MAX_RETRIES - 1)) ]; then
+                echo "Waiting ${RETRY_DELAY} seconds before retry..."
+                sleep $RETRY_DELAY
+                RETRY_DELAY=$((RETRY_DELAY * 2))  # Exponential backoff
+              fi
+            fi
+            
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+          done
+          
+          # Final verification
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "Error: Failed to create ARO cluster after $MAX_RETRIES attempts"
+            exit 1
+          fi
+          
+          echo "ARO cluster provisioning completed successfully"
       - name: Start the deployment
         id: deploy
         run: |
-          servicePrincipal=$(az ad sp create-for-rbac)
+          # Creating the service principal here was failing so it was suggested to remove it from the action and create it 
+          # manually.   I ran the command locally and stored the json as SERVICE_PRINCIPAL as an action secret.  
+          # echo "Getting service principal..."
+          # servicePrincipal=$(az ad sp create-for-rbac)
           echo "Trying to get clientId from service principal"
           clientId=$(echo $servicePrincipal | jq -r '.appId')
           echo "clientId=${clientId}" >> $GITHUB_ENV
