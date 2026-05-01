@@ -59,6 +59,7 @@ env:
   testDeploymentName: libertyAroTestDeployment-${{ github.run_id }}-${{ github.run_number }}
   location: ${{ github.event.inputs.location || 'westus3' }}
   subscriptionID: ${{secrets.SUBSCRIPTION_ID}}
+  servicePrincipal: ${{secrets.SERVICE_PRINCIPAL}}
 jobs:
   integration-test:
     runs-on: ubuntu-latest
@@ -206,10 +207,8 @@ jobs:
       - name: Start the deployment
         id: deploy
         run: |
-          echo "Sleeping for 2 mins..."
-          sleep 120
-          echo "Getting service principal..."
-          servicePrincipal=$(az ad sp create-for-rbac --scopes /subscriptions/${{ env.subscriptionID }} --role owner)
+          # echo "Getting service principal..."
+          # servicePrincipal=$(az ad sp create-for-rbac --scopes /subscriptions/${{ env.subscriptionID }} --role owner)
           echo "Trying to get clientId from service principal"
           clientId=$(echo $servicePrincipal | jq -r '.appId')
           echo "clientId=${clientId}" >> $GITHUB_ENV
