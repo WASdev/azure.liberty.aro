@@ -58,7 +58,6 @@ env:
   testResourceGroup: libertyAroTestRG-${{ github.repository_owner }}-${{ github.run_id }}-${{ github.run_number }}
   testDeploymentName: libertyAroTestDeployment-${{ github.run_id }}-${{ github.run_number }}
   location: ${{ github.event.inputs.location || 'westus3' }}
-  subscriptionID: ${{secrets.SUBSCRIPTION_ID}}
   servicePrincipal: ${{secrets.SERVICE_PRINCIPAL}}
 jobs:
   integration-test:
@@ -207,8 +206,10 @@ jobs:
       - name: Start the deployment
         id: deploy
         run: |
+          # Creating the service principal here was failing so it was suggested to remove it from the action and create it 
+          # manually.   I ran the command locally and stored the json as SERVICE_PRINCIPAL as an action secret.  
           # echo "Getting service principal..."
-          # servicePrincipal=$(az ad sp create-for-rbac --scopes /subscriptions/${{ env.subscriptionID }} --role owner)
+          # servicePrincipal=$(az ad sp create-for-rbac)
           echo "Trying to get clientId from service principal"
           clientId=$(echo $servicePrincipal | jq -r '.appId')
           echo "clientId=${clientId}" >> $GITHUB_ENV
