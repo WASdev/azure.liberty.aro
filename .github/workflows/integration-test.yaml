@@ -209,13 +209,13 @@ jobs:
           # Creating the service principal here was failing so it was suggested to remove it from the action and create it 
           # manually.   I ran the command locally and stored the json as SERVICE_PRINCIPAL as an action secret.  
           # echo "Getting service principal..."
-          servicePrincipal=$(az ad sp create-for-rbac)
+          servicePrincipal=$(az ad sp create-for-rbac --sdk-auth)
           echo "Trying to get clientId from service principal"
-          clientId=$(echo $servicePrincipal | jq -r '.appId')
+          clientId=$(echo $servicePrincipal | jq -r '.clientId')
           echo "clientId=${clientId}" >> $GITHUB_ENV
           echo "clientId=${clientId}" >> "$GITHUB_OUTPUT"
           echo "Trying to get clientSecret from service principal"
-          clientSecret=$(echo $servicePrincipal | jq -r '.password')
+          clientSecret=$(echo $servicePrincipal | jq -r '.clientSecret')
 
           # Wait for Azure AD replication
           echo "Waiting for Azure AD to replicate the service principal..."
