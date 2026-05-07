@@ -131,10 +131,12 @@ jobs:
             -DdeployWLO=${deployWLO} -Dedition="IBM WebSphere Application Server" -DproductEntitlementSource="Standalone" \
             -DdeployApplication=${deployApplication} -DappImagePath=${{ inputs.appImagePath }} -DautoScalingParam=${autoScaling} -DappReplicas=2 \
             -Dtest.args="-Test All" -Passembly -Ptemplate-validation-tests clean install
-      - uses: azure/login@v1
-        id: azure-login
+      - uses: azure/login@v2
         with:
-          creds: ${{ env.azureCredentials }}       
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Provision ARO Cluster as an existing cluster for deployment
         if: ${{ env.createCluster == 'false' }}
         run: |
