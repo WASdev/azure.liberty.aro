@@ -233,7 +233,7 @@ jobs:
               echo "Attempt $i failed, retrying in 20 seconds..."
               sleep 20
             else
-            echo "Failed to retrieve aadObjectId after 15 attempts"
+              echo "Failed to retrieve aadObjectId after 15 attempts"
               exit 1
             fi
           done          
