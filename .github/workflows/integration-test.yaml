@@ -228,7 +228,9 @@ jobs:
 
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             ATTEMPT=$((ATTEMPT + 1))
+            echo "Attempt $ATTEMPT: Retrieving aadObjectId for clientId $clientId"
             aadObjectId=$(az ad sp show --id ${clientId} --query id -o tsv 2>/dev/null)
+            echo "Attempt $ATTEMPT: aadObjectId is '$aadObjectId'"
   
             if [[ -n "$aadObjectId" && "$aadObjectId" != "None" ]]; then
               echo "Successfully retrieved aadObjectId: $aadObjectId on attempt $ATTEMPT"
