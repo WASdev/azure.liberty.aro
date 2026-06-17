@@ -220,23 +220,29 @@ jobs:
           # Wait for Azure AD replication
           echo "Waiting for Azure AD to replicate the service principal..."
           sleep 20
-    
-          # Retry logic for fetching aadObjectId
+          
           echo "Trying to get aadObjectId from service principal"
-          for i in {1..15}; do
+          MAX_ATTEMPTS=20
+          ATTEMPT=0
+          WAIT_TIME=30
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
             aadObjectId=$(az ad sp show --id ${clientId} --query id -o tsv 2>/dev/null)
+  
             if [[ -n "$aadObjectId" && "$aadObjectId" != "None" ]]; then
-              echo "Successfully retrieved aadObjectId: $aadObjectId"
+              echo "Successfully retrieved aadObjectId: $aadObjectId on attempt $ATTEMPT"
               break
             fi
-            if [ $i -lt 15 ]; then
-              echo "Attempt $i failed, retrying in 20 seconds..."
-              sleep 20
+  
+            if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+              echo "Attempt $ATTEMPT failed, retrying in $WAIT_TIME seconds..."
+              sleep $WAIT_TIME
             else
-              echo "Failed to retrieve aadObjectId after 15 attempts"
+              echo "Failed to retrieve aadObjectId after $MAX_ATTEMPTS attempts"
               exit 1
             fi
-          done          
+          done
 
           echo "Trying to get rpObjectId from service principal"
           rpObjectId=$(az ad sp list --display-name "Azure Red Hat OpenShift RP" --query [0].id -o tsv)
