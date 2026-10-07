@@ -375,5 +375,5 @@ jobs:
             echo "delete resource group: " ${{ env.testResourceGroup }}
             az group delete -n ${{ env.testResourceGroup }} --yes
             echo "delete app with clientId: " ${{ needs.integration-test.outputs.clientId }}
-            az ad app delete --id ${{ needs.integration-test.outputs.clientId }}
+            # az ad app delete --id ${{ needs.integration-test.outputs.clientId }}
 
