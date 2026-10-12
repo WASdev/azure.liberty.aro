@@ -140,6 +140,15 @@ jobs:
         if: ${{ env.createCluster == 'false' }}
         run: |
           echo "Provisioning an ARO cluster: ${{ env.clusterName }} as an existing cluster for deployment"
+          clientId=$(echo $servicePrincipal | jq -r '.appId // .clientId')
+          clientSecret=$(echo $servicePrincipal | jq -r '.password // .clientSecret')
+          
+          pullSecretArgs=()
+          if [[ -n "${{ env.pullSecretEncoded }}" && "${{ env.pullSecretEncoded }}" != "NA" ]]; then
+            pullSecret=$(echo "${{ env.pullSecretEncoded }}" | base64 -d)
+            pullSecretArgs=(--pull-secret "${pullSecret}")
+          fi
+
           VIRTUALNETWORK=vnet-for-existing-aro-cluster
           az group create --name ${{ env.testResourceGroup }} --location ${{ env.location }}
           echo "az group created"
@@ -165,7 +174,10 @@ jobs:
               --name ${{ env.clusterName }} \
               --vnet $VIRTUALNETWORK \
               --master-subnet master-subnet \
-              --worker-subnet worker-subnet; then
+              --worker-subnet worker-subnet \
+              --client-id "${clientId}" \
+              --client-secret "${clientSecret}" \
+              "${pullSecretArgs[@]}"; then
               
               # Verify cluster was created successfully
               echo "Verifying ARO cluster creation..."
