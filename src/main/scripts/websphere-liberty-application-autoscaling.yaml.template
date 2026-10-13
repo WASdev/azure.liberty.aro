@@ -44,3 +44,5 @@ spec:
   pullPolicy: Always
   manageTLS: false
   expose: true
+  service:
+    port: 9080
