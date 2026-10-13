@@ -33,6 +33,11 @@ on:
         required: true
         type: string
         default: 'westus3'
+      ref:
+        description: 'Branch, tag or SHA of this repository to test. Defaults to the ref the workflow was started from'
+        required: false
+        type: string
+        default: ''
       configurations_for_it:
         description: "JSON string of environment variables used for IT"
         required: false
@@ -41,6 +46,7 @@ on:
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
   # Enable/disable WebSphere Liberty Operator and sample application. Keep/delete Azure resources at the end.
+  # The top-level "ref" selects the branch whose workflow file runs; the optional "inputs.ref" selects what gets checked out and tested (defaults to the same branch).
   # curl --verbose -XPOST -u "WASdev:${PERSONAL_ACCESS_TOKEN}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/${REPO_NAME}/actions/workflows/integration-test.yaml/dispatches --data '{"ref": "main", "inputs":{"deployWLO": "true|false", "deployApplication": "true|false", "autoScaling": "true|false", "deleteAzureResources": "true|false"}}'
   repository_dispatch:
     types: [integration-test]
@@ -48,7 +54,8 @@ on:
   # PERSONAL_ACCESS_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
   # REPO_NAME=WASdev/azure.liberty.aro
   # Enable/disable WebSphere Liberty Operator and sample application. Keep/delete Azure resources at the end.
-  # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "integration-test", "client_payload": {"deployWLO": true|false, "deployApplication": true|false, "autoScaling": "true|false", "deleteAzureResources": "true|false"}}'
+  # repository_dispatch always runs the workflow file from the default branch; add "ref": "<branch>" to client_payload to check out and test another branch.
+  # curl --verbose -X POST https://api.github.com/repos/${REPO_NAME}/dispatches -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: token ${PERSONAL_ACCESS_TOKEN}" --data '{"event_type": "integration-test", "client_payload": {"deployWLO": true|false, "deployApplication": true|false, "autoScaling": "true|false", "deleteAzureResources": "true|false", "ref": "<branch>"}}'
 env:
   repoName: "azure.liberty.aro"
   azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
@@ -96,7 +103,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: ${{ env.repoName }}
-          ref: ${{ github.event.inputs.ref }}
+          ref: ${{ github.event.inputs.ref || github.event.client_payload.ref }}
       - name: Build ${{ env.repoName }}
         run: |
           deployWLO=false
@@ -125,13 +132,25 @@ jobs:
             clusterName="aro-cluster-${{ github.run_id }}-${{ github.run_number }}"
             clusterRGName=${{ env.testResourceGroup }}
           fi
-          mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME \
+          # Retry the build: dependency downloads from Maven Central occasionally fail with
+          # transient errors such as "Connection reset".
+          MAX_MVN_ATTEMPTS=3
+          MVN_ATTEMPT=0
+          until mvn -Dgit.repo=${{ env.userName }} -Dgit.tag=$GITHUB_REF_NAME \
             -DcreateCluster=${createCluster} \
             -DclusterName=${clusterName} \
             -DclusterRGName=${clusterRGName} \
             -DdeployWLO=${deployWLO} -Dedition="IBM WebSphere Application Server" -DproductEntitlementSource="Standalone" \
             -DdeployApplication=${deployApplication} -DappImagePath=${{ inputs.appImagePath }} -DautoScalingParam=${autoScaling} -DappReplicas=2 \
-            -Dtest.args="-Test All" -Passembly -Ptemplate-validation-tests clean install
+            -Dtest.args="-Test All" -Passembly -Ptemplate-validation-tests clean install; do
+            MVN_ATTEMPT=$((MVN_ATTEMPT + 1))
+            if [ $MVN_ATTEMPT -ge $MAX_MVN_ATTEMPTS ]; then
+              echo "Maven build failed after ${MAX_MVN_ATTEMPTS} attempts"
+              exit 1
+            fi
+            echo "Maven build failed (attempt ${MVN_ATTEMPT}/${MAX_MVN_ATTEMPTS}), retrying in 30s..."
+            sleep 30
+          done
       - uses: azure/login@v1
         id: azure-login
         with:
@@ -150,6 +169,12 @@ jobs:
           az network vnet subnet create --resource-group ${{ env.testResourceGroup }} --vnet-name $VIRTUALNETWORK --name worker-subnet --address-prefixes 10.0.2.0/23
           echo "network vnet subnet created worker"
           sleep 60
+
+          # Reuse the pre-created service principal instead of letting 'az aro create' create a
+          # new AAD application on every attempt. That auto-creation fails with
+          # "Request_ResourceNotFound" when Microsoft Graph has not replicated the new app yet.
+          aroClientId=$(echo $servicePrincipal | jq -r '.appId')
+          aroClientSecret=$(echo $servicePrincipal | jq -r '.password')
           
           # Retry logic for ARO cluster creation with error checking
           echo "Creating ARO cluster: ${{ env.clusterName }}"
@@ -165,7 +190,9 @@ jobs:
               --name ${{ env.clusterName }} \
               --vnet $VIRTUALNETWORK \
               --master-subnet master-subnet \
-              --worker-subnet worker-subnet; then
+              --worker-subnet worker-subnet \
+              --client-id "${aroClientId}" \
+              --client-secret "${aroClientSecret}"; then
               
               # Verify cluster was created successfully
               echo "Verifying ARO cluster creation..."
@@ -299,16 +326,60 @@ jobs:
               echo "Invalid value of appEndpoint: ${appEndpoint}"
               exit 1
             fi
-            httpCode=$(curl --verbose --connect-timeout 60 --max-time 180 --retry 10 --retry-delay 30 --retry-max-time 180 --retry-connrefused --write-out '%{http_code}' --silent --output /dev/null $appEndpoint)
-            echo "http_code is $httpCode"
+            MAX_CURL_RETRIES=20
+            CURL_RETRY_DELAY=30
+            CURL_ATTEMPT=0
+            httpCode=0
+            while [ $CURL_ATTEMPT -lt $MAX_CURL_RETRIES ]; do
+              CURL_ATTEMPT=$((CURL_ATTEMPT + 1))
+              httpCode=$(curl --connect-timeout 60 --max-time 180 --write-out '%{http_code}' --silent --output /dev/null $appEndpoint)
+              echo "Attempt ${CURL_ATTEMPT}/${MAX_CURL_RETRIES}: http_code is $httpCode"
+              if [ "$httpCode" -eq 200 ]; then
+                break
+              fi
+              if [ $CURL_ATTEMPT -lt $MAX_CURL_RETRIES ]; then
+                echo "Non-200 response (${httpCode}), retrying in ${CURL_RETRY_DELAY}s..."
+                sleep $CURL_RETRY_DELAY
+              fi
+            done
             if [ "$httpCode" -ne 200 ]; then
-              echo "Failed to access ${appEndpoint}."
+              echo "Failed to access ${appEndpoint} after ${MAX_CURL_RETRIES} attempts (last http_code: ${httpCode})."
               exit 1
             fi
           elif [[ -n "$appEndpoint" ]]; then
             echo "Invalid value of appEndpoint: ${appEndpoint}"
             exit 1
           fi
+      - name: Dump application diagnostics
+        if: failure() && env.deployApplication == 'true'
+        continue-on-error: true
+        run: |
+          clusterName=${{ env.clusterName }}
+          if [[ "${{ env.createCluster }}" != "false" ]]; then
+            clusterName="aro-cluster-${{ github.run_id }}-${{ github.run_number }}"
+          fi
+          rg=${{ env.testResourceGroup }}
+          apiUrl=$(az aro show -g $rg -n $clusterName --query apiserverProfile.url -o tsv)
+          pw=$(az aro list-credentials -g $rg -n $clusterName --query kubeadminPassword -o tsv)
+          oc login "$apiUrl" -u kubeadmin -p "$pw" --insecure-skip-tls-verify=true
+          ns=$(oc get projects -o name | sed 's#project.project.openshift.io/##' | grep '^project' | head -1)
+          echo "=== namespace: $ns ==="
+          oc get all,route,endpoints -n $ns -o wide
+          echo "=== route yaml ==="
+          oc get route -n $ns -o yaml
+          echo "=== service yaml ==="
+          oc get svc -n $ns -o yaml
+          echo "=== application CR ==="
+          oc get openlibertyapplication,webspherelibertyapplication -n $ns -o yaml
+          echo "=== pod describe ==="
+          oc describe pod -n $ns
+          echo "=== pod logs ==="
+          oc logs -n $ns --all-containers --tail=200 -l app.kubernetes.io/managed-by
+          echo "=== operator logs ==="
+          oc logs -n openshift-operators --tail=100 deployment/wlo-controller-manager || true
+          oc logs -n openshift-operators --tail=100 deployment/olo-controller-manager || true
+          echo "=== router pods ==="
+          oc get pods -n openshift-ingress
       - name: Generate artifact file name and path
         id: artifact_file
         run: |
@@ -368,7 +439,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: ${{ env.repoName }}
-          ref: ${{ github.event.inputs.ref }}
+          ref: ${{ github.event.inputs.ref || github.event.client_payload.ref }}
       - name: Delete all Azure resources
         id: delete-resources
         if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deleteAzureResources) || (github.event_name == 'repository_dispatch' && github.event.client_payload.deleteAzureResources) }}
